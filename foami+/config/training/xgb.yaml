@@ -1,0 +1,11 @@
+# XGBoost training hyperparameters
+# Matches notebook 6 (6_train_models_with_tvae.ipynb)
+# Note: `device` (cpu/cuda) is set at runtime via --device CLI flag
+
+tree_method: hist          # Histogram-based tree construction (fast, memory-efficient)
+max_depth: 15              # Maximum tree depth — higher = more complex model
+n_estimators: 5000         # Number of boosting rounds
+learning_rate: 0.3         # Step size shrinkage to prevent overfitting
+eval_metric: mlogloss      # Evaluation metric for validation set
+objective: multi:softmax   # Multiclass classification (returns class labels)
+booster: gbtree            # Tree-based boosting (vs. linear)

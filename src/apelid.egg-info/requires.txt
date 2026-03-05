@@ -1,0 +1,16 @@
+catboost>=1.2.8
+colorama>=0.4.6
+imblearn>=0.0
+pandas>=2.3.2
+scikit-learn>=1.6.1
+tabpfn>=2.2.1
+torch>=2.6.0
+tqdm>=4.67.1
+
+[dev]
+pytest>=6.0.0
+pytest-cov>=2.0.0
+black>=21.0.0
+isort>=5.0.0
+flake8>=3.9.0
+mypy>=0.910

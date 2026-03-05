@@ -1,0 +1,27 @@
+Metadata-Version: 2.4
+Name: apelid
+Version: 0.1.0
+Summary: APELID implementation
+Author-email: Minh Quang Tran <minhtran6464.lhp@gmail.com>
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.10
+Classifier: Operating System :: OS Independent
+Requires-Python: >=3.10
+Description-Content-Type: text/markdown
+Requires-Dist: catboost>=1.2.8
+Requires-Dist: colorama>=0.4.6
+Requires-Dist: imblearn>=0.0
+Requires-Dist: pandas>=2.3.2
+Requires-Dist: scikit-learn>=1.6.1
+Requires-Dist: tabpfn>=2.2.1
+Requires-Dist: torch>=2.6.0
+Requires-Dist: tqdm>=4.67.1
+Provides-Extra: dev
+Requires-Dist: pytest>=6.0.0; extra == "dev"
+Requires-Dist: pytest-cov>=2.0.0; extra == "dev"
+Requires-Dist: black>=21.0.0; extra == "dev"
+Requires-Dist: isort>=5.0.0; extra == "dev"
+Requires-Dist: flake8>=3.9.0; extra == "dev"
+Requires-Dist: mypy>=0.910; extra == "dev"
+
+# APELID

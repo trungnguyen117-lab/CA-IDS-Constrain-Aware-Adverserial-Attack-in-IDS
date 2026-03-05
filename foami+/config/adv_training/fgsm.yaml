@@ -1,0 +1,27 @@
+# FGSM params for adversarial training (AdversarialTrainingWrapper + FGSMAttackGenerator)
+#
+# FGSM is a single-step attack, so it is faster per epoch than PGD but
+# produces weaker adversarial examples. Good for quick sanity checks.
+#
+# eps         : perturbation magnitude (single step — equals the budget).
+# eps_step    : step size (set equal to eps for standard FGSM).
+# batch_size  : inner FGSM batch size inside ART attack.
+# targeted    : must be false for adversarial training.
+#               FGSMAttackGenerator already defaults to false; listed here
+#               explicitly for clarity.
+#
+# Training loop params (consumed by adv_train_dl.py, not by FGSMAttackGenerator):
+# epochs      : number of outer adversarial-training epochs.
+# ratio       : fraction of each mini-batch replaced with adversarial samples.
+# lr          : learning rate for AdamW fine-tuning.
+# weight_decay: AdamW weight decay.
+
+eps: 0.1
+eps_step: 0.1
+batch_size: 128
+targeted: false
+
+epochs: 30
+ratio: 0.5
+lr: 0.001
+weight_decay: 0.0002

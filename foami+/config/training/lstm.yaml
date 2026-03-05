@@ -1,0 +1,19 @@
+# LSTM training hyperparameters
+# Matches notebook 8 (8_multi_method.ipynb) — BiLSTM + Attention pooling architecture
+# Note: `input_dim`, `num_class`, and `device` are set at runtime
+
+# ── Architecture ──────────────────────────────────────────────────────────────
+step_dim: 16               # Number of features per time step (splits flat input into a sequence)
+hidden: 256                # Hidden size of each LSTM direction
+layers: 2                  # Number of stacked LSTM layers
+dropout: 0.15              # Dropout between LSTM layers (only applied when layers > 1)
+bidir: true                # Use bidirectional LSTM (doubles effective hidden size)
+
+# ── Optimiser ─────────────────────────────────────────────────────────────────
+lr: 0.001                  # AdamW learning rate
+weight_decay: 0.0002       # L2 regularisation coefficient
+
+# ── Training schedule ─────────────────────────────────────────────────────────
+batch_size: 2048           # Mini-batch size for training
+max_epochs: 120            # Maximum training epochs
+patience: 20               # Early stopping patience (epochs without val-loss improvement)

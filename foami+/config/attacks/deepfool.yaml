@@ -1,0 +1,8 @@
+# DeepFool parameters
+# White-box iterative attack — requires differentiable model (lstm, resdnn only)
+# Reference: https://adversarial-robustness-toolbox.readthedocs.io/en/latest/modules/attacks/evasion.html#deepfool
+
+max_iter: 100          # Maximum number of iterations to find the decision boundary
+batch_size: 64         # Number of samples processed per batch
+nb_grads: 5            # Number of class gradients to compute per iteration (higher = more accurate boundary)
+epsilon: 1.0e-6        # Overshoot factor added after crossing the boundary (stabilises convergence)

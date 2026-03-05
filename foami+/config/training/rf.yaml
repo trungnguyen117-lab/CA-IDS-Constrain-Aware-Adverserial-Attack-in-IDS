@@ -1,0 +1,9 @@
+# RandomForest training hyperparameters
+# Best configuration from n_estimators sweep in notebook 6 (n=51 gave highest accuracy)
+
+n_estimators: 51           # Number of trees — chosen by sweep over range [50, 90]
+max_leaf_nodes: 15000      # Limit on leaf nodes per tree (controls tree complexity)
+n_jobs: -1                 # Use all available CPU cores
+bootstrap: true            # Use bootstrap sampling (standard bagging)
+criterion: entropy         # Split quality measure — information gain
+random_state: 0            # Fixed seed for reproducibility

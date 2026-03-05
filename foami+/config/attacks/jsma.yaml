@@ -1,0 +1,8 @@
+# JSMA (Jacobian-based Saliency Map Attack) parameters
+# White-box feature-selection attack — requires differentiable model (lstm, resdnn only)
+# Reference: https://adversarial-robustness-toolbox.readthedocs.io/en/latest/modules/attacks/evasion.html#saliency-map-attack
+
+theta: 0.02            # Perturbation amount applied to each selected feature per step
+gamma: 0.1             # Maximum fraction of total features allowed to be perturbed (0.1 = 10%)
+batch_size: 64         # Number of samples processed per batch
+verbose: true          # Print progress during generation

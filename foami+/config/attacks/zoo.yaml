@@ -1,0 +1,17 @@
+# ZooAttack (Zeroth-Order Optimization) parameters
+# Black-box attack — compatible with all targets (xgb, cat, rf, lstm, resdnn, ensemble, mi)
+# Reference: https://adversarial-robustness-toolbox.readthedocs.io/en/latest/modules/attacks/evasion.html#zoo-attack
+
+confidence: 0.0        # Confidence margin for adversarial examples (higher = stronger but more distorted)
+targeted: false        # true = force a specific target class; false = just fool the model
+learning_rate: 0.1     # Adam optimizer learning rate for the attack
+max_iter: 100          # Maximum number of optimization iterations
+binary_search_steps: 3 # Number of binary search steps to tune constant c
+initial_const: 0.001   # Initial constant c balancing perturbation size vs. misclassification
+abort_early: true      # Stop early if loss stops improving (saves time)
+use_resize: false      # Resize input to a smaller space for optimization (not useful for tabular)
+use_importance: false  # Sample features proportionally to their importance
+nb_parallel: 10        # Number of features to perturb simultaneously per iteration
+batch_size: 1          # Number of samples processed per batch
+variable_h: 0.02       # Step size h for finite-difference gradient estimation
+verbose: true          # Print progress during generation

@@ -1,0 +1,13 @@
+# Carlini & Wagner L2 Attack parameters
+# White-box optimization attack — requires differentiable model (lstm, resdnn only)
+# Reference: https://adversarial-robustness-toolbox.readthedocs.io/en/latest/modules/attacks/evasion.html#carlini-wagner-l2-attack
+
+confidence: 0.0        # Confidence margin — higher value = stronger adversarial examples but larger distortion
+learning_rate: 0.01    # Adam optimizer learning rate for inner optimization loop
+binary_search_steps: 3 # Number of binary search rounds to tune the constant c
+max_iter: 3            # Maximum iterations per binary search step (increase for stronger attacks)
+initial_const: 0.01    # Starting value of constant c (penalty weight for misclassification)
+max_halving: 5         # Maximum times to halve c when attack succeeds too easily
+max_doubling: 5        # Maximum times to double c when attack fails
+batch_size: 64         # Number of samples processed per batch
+verbose: false         # Print progress during generation

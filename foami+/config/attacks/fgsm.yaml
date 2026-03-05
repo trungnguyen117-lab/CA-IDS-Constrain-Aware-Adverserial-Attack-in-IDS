@@ -1,0 +1,8 @@
+# FGSM (Fast Gradient Sign Method) parameters
+# White-box gradient attack — requires differentiable model (lstm, resdnn only)
+# Reference: https://adversarial-robustness-toolbox.readthedocs.io/en/latest/modules/attacks/evasion.html#fast-gradient-method
+
+eps: 0.1               # Maximum L-inf perturbation magnitude (clipped to clip_values range)
+eps_step: 0.01         # Step size of the single perturbation (used for min_epsilon stopping)
+batch_size: 64         # Number of samples processed per batch
+targeted: false        # true = force a specific target class; false = untargeted misclassification

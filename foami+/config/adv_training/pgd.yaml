@@ -1,0 +1,33 @@
+# PGD params for adversarial training (AdversarialTrainingWrapper + PGDAttackGenerator)
+#
+# IMPORTANT — targeted must be false.
+# ART's AdversarialTrainer raises NotImplementedError for targeted attacks.
+# PGDAttackGenerator defaults targeted=True (for attack generation); this
+# config overrides it for the adversarial training use-case.
+#
+# eps         : perturbation budget in raw feature space (pre-scaling).
+# eps_step    : PGD step size. Rule of thumb: eps / max_iter.
+# max_iter    : PGD inner steps per sample per batch.
+#               Higher = stronger perturbation, slower training.
+# batch_size  : inner PGD batch size (samples processed together inside ART attack).
+# verbose     : suppress ART's per-step progress bars.
+# targeted    : MUST remain false for adversarial training.
+#
+# Training loop params (consumed by adv_train_dl.py, not by PGDAttackGenerator):
+# epochs      : number of outer adversarial-training epochs.
+# ratio       : fraction of each mini-batch replaced with adversarial samples.
+#               0.5 = half clean / half adversarial (Madry-style at 1.0).
+# lr          : learning rate for AdamW fine-tuning.
+# weight_decay: AdamW weight decay.
+
+eps: 0.1
+eps_step: 0.02
+max_iter: 10
+batch_size: 128
+verbose: false
+targeted: false
+
+epochs: 30
+ratio: 0.5
+lr: 0.001
+weight_decay: 0.0002

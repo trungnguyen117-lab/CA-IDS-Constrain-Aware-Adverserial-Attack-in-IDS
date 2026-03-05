@@ -1,0 +1,11 @@
+# HopSkipJump Attack (HSJA) parameters # Black-box decision-boundary attack — compatible with all targets
+# Reference: https://adversarial-robustness-toolbox.readthedocs.io/en/latest/modules/attacks/evasion.html#hopskipjump-attack
+
+batch_size: 64 # Number of model queries per step (keep low to reduce API calls)
+targeted: false # true = hop toward a specific target class; false = hop away from true class
+norm: 2 # Distance metric — 2 = L2 norm, .inf = L-inf norm
+max_iter: 5 # Number of outer boundary-search iterations (more = stronger but slower)
+max_eval: 100 # Maximum model evaluations per iteration for gradient estimation
+init_eval: 10 # Initial evaluations to estimate the gradient direction
+init_size: 10 # Maximum random trials to find an initial adversarial example
+verbose: true # Print progress during generation

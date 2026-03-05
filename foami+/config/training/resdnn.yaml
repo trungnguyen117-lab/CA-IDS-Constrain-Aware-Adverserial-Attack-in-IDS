@@ -1,0 +1,13 @@
+# ResDNN training hyperparameters
+# Matches notebook 8 (8_multi_method.ipynb) — Residual DNN architecture
+# Architecture is fixed: stem(→512) → ResBlock×3(512,256) → head
+# Note: `input_dim`, `num_class`, and `device` are set at runtime
+
+# ── Optimiser ─────────────────────────────────────────────────────────────────
+lr: 0.001                  # AdamW learning rate
+weight_decay: 0.0002       # L2 regularisation coefficient
+
+# ── Training schedule ─────────────────────────────────────────────────────────
+batch_size: 1024           # Mini-batch size (smaller than LSTM due to larger model)
+max_epochs: 120            # Maximum training epochs
+patience: 20               # Early stopping patience (epochs without val-loss improvement)
