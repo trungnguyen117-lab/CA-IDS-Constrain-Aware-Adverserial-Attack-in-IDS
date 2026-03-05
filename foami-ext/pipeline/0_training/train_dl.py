@@ -49,8 +49,8 @@ setup_paths()
 from utils.logging    import setup_logging, get_logger
 from utils.evaluation import report_metrics
 from utils.config     import load_training_config
-from training.lstm    import LSTMModel      # torch is first imported here
-from training.resdnn  import ResDNNModel
+from model.lstm    import LSTMModel      # torch is first imported here
+from model.resdnn  import ResDNNModel
 
 import torch
 torch.set_num_threads(1)   # prevent OMP thread-pool conflicts on macOS / CPU

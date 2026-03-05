@@ -36,9 +36,9 @@ setup_paths()
 from utils.logging    import setup_logging, get_logger
 from utils.evaluation import report_metrics
 from utils.config     import load_training_config
-from training.xgb     import XGBModel
-from training.catb    import CatBoostModel
-from training.rf      import RFModel
+from model.xgb     import XGBModel
+from model.catb    import CatBoostModel
+from model.rf      import RFModel
 
 logger = get_logger(__name__)
 
