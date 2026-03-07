@@ -30,7 +30,12 @@ Usage:
 import os
 import sys
 import argparse
-import json
+
+# ── macOS / PyTorch compatibility (must be set before torch is imported) ────────
+os.environ.setdefault('KMP_DUPLICATE_LIB_OK', 'TRUE')
+os.environ.setdefault('OMP_NUM_THREADS', '1')
+os.environ.setdefault('MKL_NUM_THREADS', '1')
+os.environ.setdefault('PYTORCH_ENABLE_MPS_FALLBACK', '1')
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 import numpy as np
@@ -47,16 +52,13 @@ from utils.paths import setup_paths, MODELS_DIR, ADV_EVAL_DIR, TEST_CSV
 setup_paths()
 
 from utils.logging   import setup_logging, get_logger
-from utils.loaders   import load_wrapper, load_features_csv, resolve_adv_path
+from utils.loaders   import load_wrapper, load_features_csv, resolve_adv_path, parse_ensemble_config
 from utils.evaluation import asr
 from utils.ensemble  import (
     ENSEMBLE_COMPONENTS, MI_GBT, MI_DL,
     weighted_combine, mi_combine,
 )
-from utils.constants import (
-    ALL_ATTACKS,
-    DEFAULT_ENSEMBLE_WEIGHTS, DEFAULT_MI_W_GBT_BASE, DEFAULT_MI_PARAMS,
-)
+from utils.constants import ALL_ATTACKS
 
 logger = get_logger(__name__)
 
@@ -210,17 +212,7 @@ def main():
     plain_in   = args.plain_in   or TEST_CSV
 
     # ── Parse configs ─────────────────────────────────────────────────────────
-    ew = DEFAULT_ENSEMBLE_WEIGHTS.copy()
-    if args.ensemble_weights:
-        ew.update(json.loads(args.ensemble_weights))
-
-    mi_cfg     = DEFAULT_MI_PARAMS.copy()
-    w_gbt_base = DEFAULT_MI_W_GBT_BASE.copy()
-    if args.mi_params:
-        parsed = json.loads(args.mi_params)
-        mi_cfg.update({k: v for k, v in parsed.items() if k != 'w_gbt_base'})
-        if 'w_gbt_base' in parsed:
-            w_gbt_base = np.array(parsed['w_gbt_base'], dtype=np.float64)
+    ew, mi_cfg, w_gbt_base = parse_ensemble_config(args)
 
     # ── Load plain test data ──────────────────────────────────────────────────
     logger.info(f"[+] Plain test: {plain_in}")

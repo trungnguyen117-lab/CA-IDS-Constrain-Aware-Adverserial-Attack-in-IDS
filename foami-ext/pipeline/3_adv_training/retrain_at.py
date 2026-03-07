@@ -32,7 +32,6 @@ os.environ.setdefault('MKL_NUM_THREADS', '1')
 os.environ.setdefault('PYTORCH_ENABLE_MPS_FALLBACK', '1')
 
 import numpy as np
-import pandas as pd
 
 # ── Path bootstrap ─────────────────────────────────────────────────────────────
 _HERE       = os.path.dirname(os.path.realpath(__file__))
@@ -45,6 +44,8 @@ from utils.paths import setup_paths, MODELS_DIR, TEST_CSV, AT_MERGED_CSV
 setup_paths()
 
 from utils.logging import setup_logging, get_logger
+from utils.constants import LABEL_COL, MODEL_AT_FILENAMES
+from utils.loaders import load_features_csv
 from train_tree import train_xgb, train_cat, train_rf
 from train_dl   import train_lstm, train_resdnn
 
@@ -55,14 +56,6 @@ logger = get_logger(__name__)
 
 ALL_MODELS  = ['xgb', 'cat', 'rf', 'lstm', 'resdnn']
 _ALL_CHOICE = 'all'
-
-_OUT_NAMES = {
-    'xgb':    'framework_xgb_TVAE_at.pkl',
-    'cat':    'framework_cat_TVAE_at.pkl',
-    'rf':     'framework_rf_TVAE_at.pkl',
-    'lstm':   'framework_lstm_TVAE_at.pth',
-    'resdnn': 'framework_resdnn_TVAE_at.pth',
-}
 
 
 def main():
@@ -104,16 +97,8 @@ def main():
     logger.info(f"[+] Test  : {test_csv}")
     logger.info(f"[+] Output: {models_dir}")
 
-    df_train = pd.read_csv(train_csv, low_memory=False)
-    df_test  = pd.read_csv(test_csv,  low_memory=False)
-
-    label_col = 'Label'
-    feat_cols = [c for c in df_train.columns if c != label_col]
-
-    X_train   = df_train[feat_cols].values.astype(np.float32)
-    y_train   = df_train[label_col].values.astype(np.int64)
-    X_test    = df_test[feat_cols].values.astype(np.float32)
-    y_test    = df_test[label_col].values.astype(np.int64)
+    X_train, y_train = load_features_csv(train_csv, label_col=LABEL_COL)
+    X_test,  y_test  = load_features_csv(test_csv,  label_col=LABEL_COL)
     num_class = int(len(np.unique(y_train)))
     input_dim = X_train.shape[1]
 
@@ -124,7 +109,7 @@ def main():
 
     models = ALL_MODELS if _ALL_CHOICE in args.model else args.model
     for m in models:
-        out = _OUT_NAMES[m]
+        out = MODEL_AT_FILENAMES[m]
         if m == 'xgb':
             train_xgb(X_train, y_train, X_test, y_test, num_class, models_dir, args.device, out_name=out)
         elif m == 'cat':

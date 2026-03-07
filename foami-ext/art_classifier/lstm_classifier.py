@@ -1,4 +1,8 @@
-"""ART wrapper for ResDNN model (Residual DNN for tabular data)."""
+"""ART wrapper for LSTMTabular model (BiLSTM + Attention Pooling for tabular data).
+
+Architecture lives in foami-ext/model/lstm.py (_LSTMTabular).
+This module only contains the ART wrapper logic.
+"""
 from typing import Any, Optional, Tuple
 
 import numpy as np
@@ -6,49 +10,13 @@ import torch
 import torch.nn as nn
 
 from .art_classifier import AdversarialWrapper
-
-
-# ── Model architecture (mirrors notebook 8) ──────────────────────────────────
-
-class ResidualBlock(nn.Module):
-    def __init__(self, d_in: int, d_hid: int, p: float = 0.25):
-        super().__init__()
-        self.lin1 = nn.Linear(d_in, d_hid)
-        self.bn1  = nn.BatchNorm1d(d_hid)
-        self.lin2 = nn.Linear(d_hid, d_in)
-        self.ln2  = nn.LayerNorm(d_in)
-        self.drop = nn.Dropout(p)
-
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
-        h = self.drop(torch.relu(self.bn1(self.lin1(x))))
-        h = self.lin2(h)
-        return torch.relu(self.ln2(x + h))
-
-
-class ResDNN(nn.Module):
-    def __init__(self, in_dim: int, n_classes: int):
-        super().__init__()
-        W = 512
-        self.stem   = nn.Sequential(
-            nn.Linear(in_dim, W), nn.BatchNorm1d(W), nn.ReLU(), nn.Dropout(0.30)
-        )
-        self.block1 = ResidualBlock(W, W // 2, p=0.30)
-        self.block2 = ResidualBlock(W, W // 2, p=0.25)
-        self.block3 = ResidualBlock(W, W // 2, p=0.20)
-        self.head   = nn.Linear(W, n_classes)
-
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
-        h = self.stem(x)
-        h = self.block1(h)
-        h = self.block2(h)
-        h = self.block3(h)
-        return self.head(h)
+from model.lstm import _LSTMTabular as LSTMTabular  # single source of truth
 
 
 # ── ART Wrapper ───────────────────────────────────────────────────────────────
 
-class ResDNNWrapper(AdversarialWrapper):
-    """ART-compatible wrapper for ResDNN trained in notebook 8.
+class LSTMWrapper(AdversarialWrapper):
+    """ART-compatible wrapper for LSTMTabular trained in notebook 8.
 
     Normalization is handled via ART's built-in preprocessing parameter so that
     gradient-based attacks operate correctly in raw feature space.
@@ -83,24 +51,32 @@ class ResDNNWrapper(AdversarialWrapper):
         *,
         clip_values: Tuple[float, float],
         device: Optional[str] = None,
-    ) -> "ResDNNWrapper":
-        """Load ResDNN model from .pth saved by notebook 8.
+    ) -> "LSTMWrapper":
+        """Load LSTM model from .pth saved by notebook 8 / LSTMModel.save_model().
 
         Expected keys in checkpoint:
-          state_dict, in_dim, n_classes, scaler_mean, scaler_scale
+          state_dict, step_dim, hidden, layers, n_classes, dropout, bidir,
+          scaler_mean, scaler_scale
         """
         map_location = device if device and device != "auto" else "cpu"
         ckpt = torch.load(path, map_location=map_location, weights_only=False)
 
-        resdnn = ResDNN(in_dim=int(ckpt['in_dim']), n_classes=int(ckpt['n_classes']))
-        resdnn.load_state_dict(ckpt['state_dict'])
-        resdnn.eval()
-        resdnn = cls._place_model(resdnn, device)
+        lstm = LSTMTabular(
+            step_dim=int(ckpt['step_dim']),
+            hidden=int(ckpt['hidden']),
+            layers=int(ckpt['layers']),
+            n_classes=int(ckpt['n_classes']),
+            dropout=float(ckpt['dropout']),
+            bidir=bool(ckpt['bidir']),
+        )
+        lstm.load_state_dict(ckpt['state_dict'])
+        lstm.eval()
+        lstm = cls._place_model(lstm, device)
 
-        input_dim = int(ckpt['in_dim'])
+        input_dim = int(ckpt['scaler_mean'].shape[0])
 
         wrapper = cls(
-            model=resdnn,
+            model=lstm,
             num_classes=int(ckpt['n_classes']),
             input_shape=(input_dim,),
             clip_values=clip_values,

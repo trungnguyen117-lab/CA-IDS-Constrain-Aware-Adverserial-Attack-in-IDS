@@ -2,9 +2,11 @@
 # Matches notebook 6 (6_train_models_with_tvae.ipynb)
 # Note: `task_type` (CPU/GPU) and `classes_count` are set at runtime
 
-iterations: 5000           # Maximum number of boosting iterations
-depth: 15                  # Depth of each tree — higher = more expressive
-learning_rate: 0.65        # Shrinkage rate — high value works with early stopping
-eval_metric: TotalF1       # Optimise macro F1 on the validation set
-od_type: Iter              # Early stopping type: stop after od_wait iterations without improvement
-od_wait: 30                # Number of iterations to wait before early stopping triggers
+iterations: 2000
+depth: 6
+learning_rate: 0.2
+eval_metric: TotalF1
+od_type: Iter
+od_wait: 100
+thread_count: -1
+border_count: 64

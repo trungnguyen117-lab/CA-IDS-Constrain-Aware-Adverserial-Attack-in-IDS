@@ -66,13 +66,14 @@ from utils.paths import (
     setup_paths, ROOT_DIR, MODELS_DIR,
     AT_DIR, AT_MERGED_CSV,
     ADV_EVAL_DIR,
-    TRAIN_ORIG_CSV, TEST_CSV,
+    TRAIN_ORIG_CSV, TRAIN_CSV, TEST_CSV,
 )
 setup_paths()
 
 from utils.logging import setup_logging, get_logger
 from utils.constants import (
     SINGLE_TARGETS, ALL_ATTACKS, BLACKBOX_ATTACKS,
+    MODEL_FILENAMES, MODEL_AT_FILENAMES,
 )
 
 logger = get_logger(__name__)
@@ -88,15 +89,9 @@ _GEN_COMPAT: dict[str, set] = {
 }
 
 # ── AT model filenames ──────────────────────────────────────────────────────────
-# retrain_at.py saves: framework_{model}_TVAE_at.{ext}
-# load_wrapper expects: framework_{model}_TVAE.{ext}
-_AT_NAMES = {
-    'xgb':    ('framework_xgb_TVAE_at.pkl',    'framework_xgb_TVAE.pkl'),
-    'cat':    ('framework_cat_TVAE_at.pkl',     'framework_cat_TVAE.pkl'),
-    'rf':     ('framework_rf_TVAE_at.pkl',      'framework_rf_TVAE.pkl'),
-    'lstm':   ('framework_lstm_TVAE_at.pth',    'framework_lstm_TVAE.pth'),
-    'resdnn': ('framework_resdnn_TVAE_at.pth',  'framework_resdnn_TVAE.pth'),
-}
+# retrain_at.py saves: MODEL_AT_FILENAMES[model]
+# load_wrapper expects: MODEL_FILENAMES[model]
+_AT_NAMES = {m: (MODEL_AT_FILENAMES[m], MODEL_FILENAMES[m]) for m in SINGLE_TARGETS}
 
 # ── Script paths ────────────────────────────────────────────────────────────────
 _GEN_TVAE    = os.path.join(_HERE, '3_adv_training', 'generate_adv_from_tvae.py')
@@ -246,6 +241,7 @@ def step_evaluate_single(attacks: list[str], models_dir: str, adv_dir: str,
         '--models-dir', models_dir,
         '--output-csv', output_csv,
         '--per-class',
+        '--fallback-target', 'lstm',   # tree models (rf/xgb/cat) fall back to lstm adv CSVs
     ]
     _run(cmd, f"evaluate single ({label})", fail_fast)
 
@@ -279,10 +275,13 @@ def step_evaluate_ensemble_mi(attacks: list[str], models_dir: str, adv_dir: str,
 
 # ── Step 4: Merge ───────────────────────────────────────────────────────────────
 
-def step_merge(attacks: list[str], fail_fast: bool) -> bool:
+def step_merge(attacks: list[str], fail_fast: bool,
+               include_tvae: bool = False) -> bool:
     logger.info(f"\n{'='*60}")
     logger.info(f"  STEP 4 — Merge original train + adversarial examples")
-    logger.info(f"  base-csv: {TRAIN_ORIG_CSV}  (NO TVAE synthetic)")
+    logger.info(f"  base-csv: {TRAIN_ORIG_CSV}")
+    if include_tvae:
+        logger.info(f"  extra   : {TRAIN_CSV}  (TVAE-augmented)")
     logger.info(f"{'='*60}")
 
     compatible_attacks = sorted({
@@ -298,6 +297,8 @@ def step_merge(attacks: list[str], fail_fast: bool) -> bool:
         '--attacks',  *compatible_attacks,
         '--out-csv',  AT_MERGED_CSV,
     ]
+    if include_tvae:
+        cmd += ['--extra-csv', TRAIN_CSV]
     return _run(cmd, "merge", fail_fast)
 
 
@@ -408,6 +409,10 @@ def main():
                              "(still generates adv_training/ if needed)")
     parser.add_argument('--skip-at', action='store_true',
                         help="Skip Steps 4-6 — reuse existing AT models in models_at/")
+    parser.add_argument('--merge-include-tvae', action='store_true',
+                        help="Step 4: also include the TVAE-augmented train set "
+                             f"({TRAIN_CSV}) in the merge alongside the original train "
+                             "and adversarial examples")
     parser.add_argument('--fail-fast', action='store_true',
                         help="Stop on first failure")
     parser.add_argument('--log-level', default='INFO',
@@ -479,7 +484,8 @@ def main():
 
     if not args.skip_at:
         # ── Step 4: Merge (uses adv_training/ — from TVAE data, no test leakage)
-        step_merge(attacks=args.attacks, fail_fast=args.fail_fast)
+        step_merge(attacks=args.attacks, fail_fast=args.fail_fast,
+                   include_tvae=args.merge_include_tvae)
 
         # ── Step 5: Retrain AT ────────────────────────────────────────────────
         step_retrain(device=args.device, fail_fast=args.fail_fast)

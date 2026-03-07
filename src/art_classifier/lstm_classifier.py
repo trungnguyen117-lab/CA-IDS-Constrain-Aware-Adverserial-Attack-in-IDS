@@ -56,59 +56,34 @@ class LSTMTabular(nn.Module):
         return self.head(z)
 
 
-# ── Scaled wrapper: bakes StandardScaler into forward pass ───────────────────
-
-class _ScaledLSTM(nn.Module):
-    """Wraps LSTMTabular with StandardScaler preprocessing inside the module.
-
-    This lets ART operate in raw-feature space while the LSTM sees scaled input.
-    """
-    def __init__(self, lstm: LSTMTabular, mean: np.ndarray, scale: np.ndarray):
-        super().__init__()
-        self.lstm = lstm
-        self.register_buffer('mean_', torch.tensor(mean, dtype=torch.float32))
-        self.register_buffer('scale_', torch.tensor(scale, dtype=torch.float32))
-
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
-        x_sc = (x - self.mean_) / self.scale_
-        return self.lstm(x_sc)
-
-
 # ── ART Wrapper ───────────────────────────────────────────────────────────────
 
 class LSTMWrapper(AdversarialWrapper):
     """ART-compatible wrapper for LSTMTabular trained in notebook 8.
 
-    Handles StandardScaler internally so attack generators receive raw features.
+    Normalization is handled via ART's built-in preprocessing parameter so that
+    gradient-based attacks operate correctly in raw feature space.
     """
 
     def build_estimator(self) -> Any:
         from art.estimators.classification import PyTorchClassifier
 
-        torch_model = self.model  # _ScaledLSTM instance
-        loss = nn.CrossEntropyLoss()
-
         device_type = "gpu" if (self.device and (
             self.device.startswith("cuda") or self.device == "auto")) else "cpu"
 
+        preprocessing = None
+        if hasattr(self, 'scaler_mean') and self.scaler_mean is not None:
+            preprocessing = (self.scaler_mean, self.scaler_scale)
+
         return PyTorchClassifier(
-            model=torch_model,
-            loss=loss,
+            model=self.model,
+            loss=nn.CrossEntropyLoss(),
             input_shape=self.input_shape,
             nb_classes=self.num_classes,
             clip_values=self.clip_values,
+            preprocessing=preprocessing,
             device_type=device_type,
         )
-
-    def predict_proba(self, X: np.ndarray) -> np.ndarray:
-        """Run forward pass and apply softmax to get probability distribution."""
-        estimator = self.get_estimator()
-        X_f32 = X.astype(np.float32, copy=False)
-        logits = estimator.predict(X_f32)   # ART returns raw logits for PyTorch
-        # Softmax in numpy
-        logits = logits - logits.max(axis=1, keepdims=True)
-        exp = np.exp(logits)
-        return exp / exp.sum(axis=1, keepdims=True)
 
     # ── Factory ───────────────────────────────────────────────────────────────
 
@@ -139,22 +114,17 @@ class LSTMWrapper(AdversarialWrapper):
         )
         lstm.load_state_dict(ckpt['state_dict'])
         lstm.eval()
+        lstm = cls._place_model(lstm, device)
 
-        scaled_model = _ScaledLSTM(lstm, ckpt['scaler_mean'], ckpt['scaler_scale'])
-
-        if device and device != "auto" and device.startswith("cuda"):
-            scaled_model = scaled_model.cuda()
-        else:
-            scaled_model = scaled_model.cpu()
-        scaled_model.eval()
-
-        # Input dim from scaler mean shape (number of raw features)
         input_dim = int(ckpt['scaler_mean'].shape[0])
 
-        return cls(
-            model=scaled_model,
+        wrapper = cls(
+            model=lstm,
             num_classes=int(ckpt['n_classes']),
             input_shape=(input_dim,),
             clip_values=clip_values,
             device=device or "cpu",
         )
+        wrapper.scaler_mean  = ckpt['scaler_mean'].astype(np.float32)
+        wrapper.scaler_scale = ckpt['scaler_scale'].astype(np.float32)
+        return wrapper

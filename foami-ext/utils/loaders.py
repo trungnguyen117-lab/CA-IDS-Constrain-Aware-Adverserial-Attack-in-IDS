@@ -3,6 +3,7 @@
 All wrappers return ART-compatible estimator objects ready for adversarial
 generation or evaluation.
 """
+import json
 import os
 import logging
 
@@ -13,6 +14,7 @@ import pandas as pd
 from .constants import (
     SINGLE_TARGETS,
     DEFAULT_ENSEMBLE_WEIGHTS, DEFAULT_MI_W_GBT_BASE, DEFAULT_MI_PARAMS,
+    LABEL_COL, MODEL_FILENAMES,
 )
 
 logger = logging.getLogger(__name__)
@@ -44,7 +46,7 @@ def load_wrapper(target: str, models_dir: str, clip_values,
     """Load a single-model ART wrapper for *target*."""
     if target == 'xgb':
         from art_classifier.xgb_classifier import XGBWrapper
-        p = os.path.join(models_dir, 'framework_xgb_TVAE.pkl')
+        p = os.path.join(models_dir, MODEL_FILENAMES['xgb'])
         require_file(p)
         try:
             model = joblib.load(p)
@@ -57,7 +59,7 @@ def load_wrapper(target: str, models_dir: str, clip_values,
 
     if target == 'cat':
         from art_classifier.catb_classifier import CatBoostWrapper
-        p = os.path.join(models_dir, 'framework_cat_TVAE.pkl')
+        p = os.path.join(models_dir, MODEL_FILENAMES['cat'])
         require_file(p)
         try:
             model = joblib.load(p)
@@ -68,19 +70,19 @@ def load_wrapper(target: str, models_dir: str, clip_values,
             return _load_sklearn_wrapper(p, clip_values, num_classes, input_dim)
 
     if target == 'rf':
-        p = os.path.join(models_dir, 'framework_rf_TVAE.pkl')
+        p = os.path.join(models_dir, MODEL_FILENAMES['rf'])
         require_file(p)
         return _load_sklearn_wrapper(p, clip_values, num_classes, input_dim)
 
     if target == 'lstm':
         from art_classifier.lstm_classifier import LSTMWrapper
-        p = os.path.join(models_dir, 'framework_lstm_TVAE.pth')
+        p = os.path.join(models_dir, MODEL_FILENAMES['lstm'])
         require_file(p)
         return LSTMWrapper.from_checkpoint(p, clip_values=clip_values, device=device)
 
     if target == 'resdnn':
         from art_classifier.resdnn_classifier import ResDNNWrapper
-        p = os.path.join(models_dir, 'framework_resdnn_TVAE.pth')
+        p = os.path.join(models_dir, MODEL_FILENAMES['resdnn'])
         require_file(p)
         return ResDNNWrapper.from_checkpoint(p, clip_values=clip_values, device=device)
 
@@ -89,7 +91,7 @@ def load_wrapper(target: str, models_dir: str, clip_values,
 
 # ── CSV feature loaders ────────────────────────────────────────────────────────
 
-def load_features_csv(path: str, label_col: str = 'Label'):
+def load_features_csv(path: str, label_col: str = LABEL_COL):
     """Load a feature CSV, returning (X: float32, y: int64) arrays."""
     df = pd.read_csv(path, low_memory=False)
     fc = [c for c in df.columns if c != label_col]
@@ -129,6 +131,29 @@ def resolve_adv_path(component: str, attack: str, adv_dir: str,
             logger.debug(f"  {component}/{attack}: fallback → {fb}")
             return p_fb
     return None
+
+
+# ── Ensemble / MI config parser ───────────────────────────────────────────────
+
+def parse_ensemble_config(args) -> tuple:
+    """Parse --ensemble-weights and --mi-params from argparse args.
+
+    Returns:
+        (ew, mi_cfg, w_gbt_base) — dicts and numpy array ready for use.
+    """
+    ew = DEFAULT_ENSEMBLE_WEIGHTS.copy()
+    if getattr(args, 'ensemble_weights', None):
+        ew.update(json.loads(args.ensemble_weights))
+
+    mi_cfg = DEFAULT_MI_PARAMS.copy()
+    w_gbt_base = DEFAULT_MI_W_GBT_BASE.copy()
+    if getattr(args, 'mi_params', None):
+        parsed = json.loads(args.mi_params)
+        mi_cfg.update({k: v for k, v in parsed.items() if k != 'w_gbt_base'})
+        if 'w_gbt_base' in parsed:
+            w_gbt_base = np.array(parsed['w_gbt_base'], dtype=np.float64)
+
+    return ew, mi_cfg, w_gbt_base
 
 
 # ── Ensemble / MI predictor builder (used by evaluate) ───────────────────────

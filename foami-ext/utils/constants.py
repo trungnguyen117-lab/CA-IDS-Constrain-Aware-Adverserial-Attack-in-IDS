@@ -23,3 +23,21 @@ DEFAULT_ENSEMBLE_WEIGHTS = {
 # MI base weights (cat, rf) from notebook 9
 DEFAULT_MI_W_GBT_BASE = np.array([0.42, 0.58])
 DEFAULT_MI_PARAMS     = {'alpha': 0.0, 'beta': 0.0, 'threshold': 0.5}
+
+LABEL_COL = 'Label'
+
+MODEL_FILENAMES = {
+    'xgb':    'framework_xgb_TVAE.pkl',
+    'cat':    'framework_cat_TVAE.pkl',
+    'rf':     'framework_rf_TVAE.pkl',
+    'lstm':   'framework_lstm_TVAE.pth',
+    'resdnn': 'framework_resdnn_TVAE.pth',
+}
+
+MODEL_AT_FILENAMES = {
+    'xgb':    'framework_xgb_TVAE_at.pkl',
+    'cat':    'framework_cat_TVAE_at.pkl',
+    'rf':     'framework_rf_TVAE_at.pkl',
+    'lstm':   'framework_lstm_TVAE_at.pth',
+    'resdnn': 'framework_resdnn_TVAE_at.pth',
+}

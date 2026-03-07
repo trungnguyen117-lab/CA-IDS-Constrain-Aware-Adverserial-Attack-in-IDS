@@ -49,6 +49,7 @@ setup_paths()
 from utils.logging    import setup_logging, get_logger
 from utils.evaluation import report_metrics
 from utils.config     import load_training_config
+from utils.constants  import LABEL_COL, MODEL_FILENAMES
 from model.lstm    import LSTMModel      # torch is first imported here
 from model.resdnn  import ResDNNModel
 
@@ -64,8 +65,10 @@ _ALL_CHOICE = 'all'
 # ── Per-model trainers ────────────────────────────────────────────────────────
 
 def train_lstm(X_train, y_train, X_test, y_test, input_dim, num_class, models_dir, device,
-               out_name='framework_lstm_TVAE.pth'):
+               out_name=None):
     """BiLSTM + Attention — params from foami+/config/training/lstm.yaml."""
+    if out_name is None:
+        out_name = MODEL_FILENAMES['lstm']
     logger.info("[LSTM] Starting training ...")
     X_tr, X_val, y_tr, y_val = train_test_split(
         X_train, y_train, test_size=0.1, random_state=42, stratify=y_train
@@ -84,8 +87,10 @@ def train_lstm(X_train, y_train, X_test, y_test, input_dim, num_class, models_di
 
 
 def train_resdnn(X_train, y_train, X_test, y_test, input_dim, num_class, models_dir, device,
-                 out_name='framework_resdnn_TVAE.pth'):
+                 out_name=None):
     """Residual DNN — params from foami+/config/training/resdnn.yaml."""
+    if out_name is None:
+        out_name = MODEL_FILENAMES['resdnn']
     logger.info("[ResDNN] Starting training ...")
     X_tr, X_val, y_tr, y_val = train_test_split(
         X_train, y_train, test_size=0.1, random_state=42, stratify=y_train
@@ -142,13 +147,12 @@ def main():
     df_train = pd.read_csv(train_csv, low_memory=False)
     df_test  = pd.read_csv(test_csv,  low_memory=False)
 
-    label_col = 'Label'
-    feat_cols = [c for c in df_train.columns if c != label_col]
+    feat_cols = [c for c in df_train.columns if c != LABEL_COL]
 
     X_train   = df_train[feat_cols].values.astype(np.float32)
-    y_train   = df_train[label_col].values.astype(np.int64)
+    y_train   = df_train[LABEL_COL].values.astype(np.int64)
     X_test    = df_test[feat_cols].values.astype(np.float32)
-    y_test    = df_test[label_col].values.astype(np.int64)
+    y_test    = df_test[LABEL_COL].values.astype(np.int64)
     num_class = int(len(np.unique(y_train)))
     input_dim = X_train.shape[1]
 

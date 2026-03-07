@@ -20,8 +20,13 @@ Usage:
 
 import os
 import sys
-import json
 import argparse
+
+# ── macOS / PyTorch compatibility (must be set before torch is imported) ────────
+os.environ.setdefault('KMP_DUPLICATE_LIB_OK', 'TRUE')
+os.environ.setdefault('OMP_NUM_THREADS', '1')
+os.environ.setdefault('MKL_NUM_THREADS', '1')
+os.environ.setdefault('PYTORCH_ENABLE_MPS_FALLBACK', '1')
 
 import numpy as np
 import pandas as pd
@@ -39,11 +44,8 @@ from utils.paths import (
 setup_paths()
 
 from utils.logging    import setup_logging, get_logger
-from utils.constants  import (
-    ALL_TARGETS, ALL_ATTACKS,
-    DEFAULT_ENSEMBLE_WEIGHTS, DEFAULT_MI_W_GBT_BASE, DEFAULT_MI_PARAMS,
-)
-from utils.loaders    import require_file, build_predictor
+from utils.constants  import ALL_TARGETS, ALL_ATTACKS, LABEL_COL
+from utils.loaders    import require_file, build_predictor, load_features_csv, parse_ensemble_config
 from utils.evaluation import predict_safe, asr, format_cm, save_cm_plot
 
 logger = get_logger(__name__)
@@ -80,6 +82,10 @@ def main():
                         help="Directory to save CM plots (default: <foami+>/report)")
     parser.add_argument('--output-csv', default=None,
                         help="Save summary results to CSV")
+    parser.add_argument('--fallback-target', default=None,
+                        choices=ALL_TARGETS,
+                        help="Fallback model to use when target's adv CSV is missing "
+                             "(e.g. --fallback-target lstm for tree models)")
     parser.add_argument('--log-level', default='INFO',
                         choices=['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'])
     args = parser.parse_args()
@@ -101,11 +107,7 @@ def main():
     # ── Load plain data ───────────────────────────────────────────────────────
     require_file(plain_in)
     logger.info(f"[+] Plain: {plain_in}")
-    df_plain    = pd.read_csv(plain_in, low_memory=False)
-    label_col   = 'Label'
-    feat_cols   = [c for c in df_plain.columns if c != label_col]
-    X_plain     = df_plain[feat_cols].values.astype(np.float32)
-    y_plain     = df_plain[label_col].values.astype(np.int64)
+    X_plain, y_plain = load_features_csv(plain_in, label_col=LABEL_COL)
     num_classes = len(np.unique(y_plain))
     input_dim   = X_plain.shape[1]
     clip_values = (float(X_plain.min()), float(X_plain.max()))
@@ -113,17 +115,7 @@ def main():
     logger.info(f"[+] Shape={X_plain.shape}, classes={num_classes}")
 
     # ── Parse ensemble/MI configs ─────────────────────────────────────────────
-    ew = DEFAULT_ENSEMBLE_WEIGHTS.copy()
-    if args.ensemble_weights:
-        ew.update(json.loads(args.ensemble_weights))
-
-    mi_cfg     = DEFAULT_MI_PARAMS.copy()
-    w_gbt_base = DEFAULT_MI_W_GBT_BASE.copy()
-    if args.mi_params:
-        parsed = json.loads(args.mi_params)
-        mi_cfg.update({k: v for k, v in parsed.items() if k != 'w_gbt_base'})
-        if 'w_gbt_base' in parsed:
-            w_gbt_base = np.array(parsed['w_gbt_base'], dtype=np.float64)
+    ew, mi_cfg, w_gbt_base = parse_ensemble_config(args)
 
     global_adv_tasks = ([(os.path.basename(p), p) for p in args.adv_in]
                         if args.adv_in else None)
@@ -162,13 +154,22 @@ def main():
 
         for tag, adv_path in adv_tasks:
             if not os.path.exists(adv_path):
-                logger.warning(f"[!] Not found: {adv_path} — skip")
-                continue
+                # Try fallback target (e.g. lstm) when tree model has no adv CSV
+                if args.fallback_target and args.fallback_target != target:
+                    fb_path = os.path.join(adv_dir, args.fallback_target,
+                                           f"{args.fallback_target}_{tag}_adv.csv")
+                    if os.path.exists(fb_path):
+                        logger.info(f"[~] Fallback [{tag}]: {target} → {args.fallback_target}: {fb_path}")
+                        adv_path = fb_path
+                    else:
+                        logger.warning(f"[!] Not found: {adv_path} (fallback {fb_path} also missing) — skip")
+                        continue
+                else:
+                    logger.warning(f"[!] Not found: {adv_path} — skip")
+                    continue
 
             logger.info(f"[+] Adversarial [{tag}]: {adv_path}")
-            df_adv = pd.read_csv(adv_path, low_memory=False)
-            X_adv  = df_adv[[c for c in df_adv.columns if c != label_col]].values.astype(np.float32)
-            y_adv  = df_adv[label_col].values.astype(np.int64)
+            X_adv, y_adv = load_features_csv(adv_path, label_col=LABEL_COL)
 
             y_adv_pred = predict_safe(predictor, X_adv)
             adv_acc    = float(accuracy_score(y_adv, y_adv_pred))

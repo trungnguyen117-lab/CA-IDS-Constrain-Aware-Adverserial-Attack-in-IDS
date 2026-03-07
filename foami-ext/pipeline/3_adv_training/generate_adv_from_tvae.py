@@ -58,9 +58,9 @@ from utils.logging   import setup_logging, get_logger
 from utils.constants import (
     ALL_TARGETS, ALL_ATTACKS, BLACKBOX_ATTACKS,
     GBT_TARGETS, ENSEMBLE_TARGETS, SINGLE_TARGETS,
-    DEFAULT_ENSEMBLE_WEIGHTS, DEFAULT_MI_W_GBT_BASE, DEFAULT_MI_PARAMS,
+    LABEL_COL,
 )
-from utils.loaders import load_wrapper
+from utils.loaders import load_wrapper, parse_ensemble_config
 from utils.attacks import build_meta, make_generator
 
 from art_classifier.ensemble_classifier import EnsembleEstimator
@@ -145,7 +145,7 @@ def main():
     df_in = pd.read_csv(args.data_in, low_memory=False)
     logger.info(f"[+] Input shape: {df_in.shape}")
 
-    label_col = 'Label'
+    label_col = LABEL_COL
 
     # Build meta from the full dataset so clip_values / feature names are correct
     meta      = build_meta(df_in, label_col)
@@ -194,9 +194,7 @@ def main():
                                  args.device).get_estimator()
 
     elif args.target == 'ensemble':
-        ew = DEFAULT_ENSEMBLE_WEIGHTS.copy()
-        if args.ensemble_weights:
-            ew.update(json.loads(args.ensemble_weights))
+        ew, _, _ = parse_ensemble_config(args)
         wrappers = {}
         for t in SINGLE_TARGETS:
             if ew.get(t, 0.0) > 0:
@@ -207,13 +205,7 @@ def main():
                                       num_classes=num_classes, clip_values=clip_values)
 
     elif args.target == 'mi':
-        mi_cfg     = DEFAULT_MI_PARAMS.copy()
-        w_gbt_base = DEFAULT_MI_W_GBT_BASE.copy()
-        if args.mi_params:
-            parsed = json.loads(args.mi_params)
-            mi_cfg.update({k: v for k, v in parsed.items() if k != 'w_gbt_base'})
-            if 'w_gbt_base' in parsed:
-                w_gbt_base = np.array(parsed['w_gbt_base'], dtype=np.float64)
+        _, mi_cfg, w_gbt_base = parse_ensemble_config(args)
         logger.info(f"  MI params: alpha={mi_cfg['alpha']}, beta={mi_cfg['beta']}, "
                     f"threshold={mi_cfg['threshold']}")
         logger.info("  Loading GBT wrappers (cat, rf) ...")

@@ -18,6 +18,28 @@ _TRAINING_CONFIG_DIR = os.path.join(FOAMI_DIR, 'config', 'training')
 _AT_CONFIG_DIR       = os.path.join(FOAMI_DIR, 'config', 'adv_training')
 
 
+def _load_yaml(path: str, label: str) -> dict:
+    if not os.path.exists(path):
+        logger.debug(f"[config] No config file for '{label}' at {path}")
+        return {}
+    try:
+        import yaml
+    except ImportError:
+        logger.warning(
+            "[config] PyYAML not installed — config files are ignored. "
+            "Install with: pip install pyyaml"
+        )
+        return {}
+    try:
+        with open(path, 'r') as fh:
+            cfg = yaml.safe_load(fh) or {}
+        logger.debug(f"[config] Loaded '{label}' config from {path}: {cfg}")
+        return cfg
+    except Exception as exc:
+        logger.warning(f"[config] Failed to parse {path} ({label}): {exc}")
+        return {}
+
+
 def load_attack_config(attack: str) -> dict:
     """Return params dict from foami+/config/attacks/{attack}.yaml.
 
@@ -29,26 +51,7 @@ def load_attack_config(attack: str) -> dict:
     Returns an empty dict if the file is missing or PyYAML is unavailable
     (caller then falls back to the hardcoded defaults).
     """
-    path = os.path.join(_CONFIG_DIR, f"{attack}.yaml")
-    if not os.path.exists(path):
-        logger.debug(f"[config] No config file for '{attack}' at {path}")
-        return {}
-    try:
-        import yaml
-    except ImportError:
-        logger.warning(
-            "[config] PyYAML not installed — attack config files are ignored. "
-            "Install with: pip install pyyaml"
-        )
-        return {}
-    try:
-        with open(path, 'r') as fh:
-            cfg = yaml.safe_load(fh) or {}
-        logger.debug(f"[config] Loaded '{attack}' config from {path}: {cfg}")
-        return cfg
-    except Exception as exc:
-        logger.warning(f"[config] Failed to parse {path}: {exc}")
-        return {}
+    return _load_yaml(os.path.join(_CONFIG_DIR, f"{attack}.yaml"), attack)
 
 
 def load_training_config(model: str) -> dict:
@@ -62,26 +65,7 @@ def load_training_config(model: str) -> dict:
     Returns an empty dict if the file is missing or PyYAML is unavailable
     (caller then falls back to the hardcoded defaults in the training script).
     """
-    path = os.path.join(_TRAINING_CONFIG_DIR, f"{model}.yaml")
-    if not os.path.exists(path):
-        logger.debug(f"[config] No training config for '{model}' at {path}")
-        return {}
-    try:
-        import yaml
-    except ImportError:
-        logger.warning(
-            "[config] PyYAML not installed — training config files are ignored. "
-            "Install with: pip install pyyaml"
-        )
-        return {}
-    try:
-        with open(path, 'r') as fh:
-            cfg = yaml.safe_load(fh) or {}
-        logger.debug(f"[config] Loaded '{model}' training config from {path}: {cfg}")
-        return cfg
-    except Exception as exc:
-        logger.warning(f"[config] Failed to parse {path}: {exc}")
-        return {}
+    return _load_yaml(os.path.join(_TRAINING_CONFIG_DIR, f"{model}.yaml"), model)
 
 
 def load_adv_training_config(attack: str) -> dict:
@@ -92,23 +76,4 @@ def load_adv_training_config(attack: str) -> dict:
 
     Returns an empty dict if the file is missing or PyYAML is unavailable.
     """
-    path = os.path.join(_AT_CONFIG_DIR, f"{attack}.yaml")
-    if not os.path.exists(path):
-        logger.debug(f"[config] No adv-training config for '{attack}' at {path}")
-        return {}
-    try:
-        import yaml
-    except ImportError:
-        logger.warning(
-            "[config] PyYAML not installed — adv_training config files are ignored. "
-            "Install with: pip install pyyaml"
-        )
-        return {}
-    try:
-        with open(path, 'r') as fh:
-            cfg = yaml.safe_load(fh) or {}
-        logger.debug(f"[config] Loaded '{attack}' adv-training config from {path}: {cfg}")
-        return cfg
-    except Exception as exc:
-        logger.warning(f"[config] Failed to parse {path}: {exc}")
-        return {}
+    return _load_yaml(os.path.join(_AT_CONFIG_DIR, f"{attack}.yaml"), attack)
