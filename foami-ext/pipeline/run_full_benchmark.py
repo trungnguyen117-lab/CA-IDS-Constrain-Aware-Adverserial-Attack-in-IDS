@@ -126,7 +126,7 @@ def _adv_csv(target: str, attack: str) -> str:
 # ── Step 1a: Generate adv from TVAE train data (for AT defense) ─────────────────
 
 def step_generate_at(attacks: list[str], samples_per_class: int,
-                     device: str, fail_fast: bool) -> list[tuple]:
+                     device: str, fail_fast: bool, force: bool = False) -> list[tuple]:
     """Generate adversarial examples from TVAE-augmented training data.
 
     Output: adv_training/{target}/{target}_{attack}_adv.csv
@@ -139,12 +139,14 @@ def step_generate_at(attacks: list[str], samples_per_class: int,
     logger.info(f"\n{'='*60}")
     logger.info(f"  STEP 1a — Generate adv from TVAE train data ({len(pairs)} combos)")
     logger.info(f"  Source: train_at.csv  →  adv_training/  (for AT defense only)")
+    if force:
+        logger.info(f"  [FORCE] Overwriting existing adv CSVs")
     logger.info(f"{'='*60}")
 
     ok, skipped, failed = 0, 0, []
     for i, (target, attack) in enumerate(pairs, 1):
         out_csv = _adv_csv(target, attack)
-        if os.path.exists(out_csv):
+        if os.path.exists(out_csv) and not force:
             logger.info(f"  [{i}/{len(pairs)}] SKIP (exists): {target} × {attack}")
             skipped += 1
             continue
@@ -170,7 +172,8 @@ def step_generate_at(attacks: list[str], samples_per_class: int,
 
 # ── Step 1b: Generate adv from TEST SET (for evaluation) ────────────────────────
 
-def step_generate_eval(attacks: list[str], device: str, fail_fast: bool) -> list[tuple]:
+def step_generate_eval(attacks: list[str], device: str, fail_fast: bool,
+                       force: bool = False) -> list[tuple]:
     """Generate adversarial examples from the TEST SET for benchmark evaluation.
 
     Output: adv_eval/{target}/{target}_{attack}_adv.csv
@@ -187,13 +190,15 @@ def step_generate_eval(attacks: list[str], device: str, fail_fast: bool) -> list
     logger.info(f"  STEP 1b — Generate adv from TEST SET ({len(pairs)} combos)")
     logger.info(f"  Source: test_shap_66.csv  →  adv_eval/  (for evaluation only)")
     logger.info(f"  [NO leakage: these examples are NEVER used for AT training]")
+    if force:
+        logger.info(f"  [FORCE] Overwriting existing adv CSVs")
     logger.info(f"{'='*60}")
 
     ok, skipped, failed = 0, 0, []
     for i, (target, attack) in enumerate(pairs, 1):
         out_dir = os.path.join(ADV_EVAL_DIR, target)
         out_csv = os.path.join(out_dir, f"{target}_{attack}_adv.csv")
-        if os.path.exists(out_csv):
+        if os.path.exists(out_csv) and not force:
             logger.info(f"  [{i}/{len(pairs)}] SKIP (exists): {target} × {attack}")
             skipped += 1
             continue
@@ -413,6 +418,9 @@ def main():
                         help="Step 4: also include the TVAE-augmented train set "
                              f"({TRAIN_CSV}) in the merge alongside the original train "
                              "and adversarial examples")
+    parser.add_argument('--force', action='store_true',
+                        help="Force re-run all steps, overwriting existing adv CSVs "
+                             "and report files")
     parser.add_argument('--fail-fast', action='store_true',
                         help="Stop on first failure")
     parser.add_argument('--log-level', default='INFO',
@@ -430,10 +438,20 @@ def main():
     csv_after_single    = os.path.join(report_dir, 'results_after_at_single.csv')
     csv_after_ensemble  = os.path.join(report_dir, 'results_after_at_ensemble.csv')
 
+    # --force: xoá các report CSV cũ để chạy lại từ đầu
+    if args.force:
+        for p in [csv_before_single, csv_before_ensemble,
+                  csv_after_single, csv_after_ensemble]:
+            if os.path.exists(p):
+                os.remove(p)
+                logger.info(f"  [FORCE] Removed: {p}")
+
     logger.info("=" * 60)
     logger.info("  FULL ADVERSARIAL ROBUSTNESS BENCHMARK")
     logger.info(f"  Attacks : {args.attacks}")
     logger.info(f"  Device  : {args.device}")
+    if args.force:
+        logger.info("  [FORCE] Re-running all steps (ignoring existing files)")
     logger.info("  Data split (no leakage):")
     logger.info("    adv_eval/      ← from TEST SET  → evaluation only")
     logger.info("    adv_training/  ← from TVAE data → AT defense only")
@@ -446,6 +464,7 @@ def main():
             samples_per_class=args.samples_per_class,
             device=args.device,
             fail_fast=args.fail_fast,
+            force=args.force,
         )
     else:
         logger.info("\n[SKIP] Step 1a — adv_training/ generation (--skip-gen)")
@@ -456,6 +475,7 @@ def main():
             attacks=args.attacks,
             device=args.device,
             fail_fast=args.fail_fast,
+            force=args.force,
         )
     else:
         logger.info("\n[SKIP] Step 1b — adv_eval/ generation (--skip-gen / --skip-eval-gen)")
