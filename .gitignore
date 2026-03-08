@@ -2,7 +2,7 @@ models/
 models_at/
 adversarial-robustness-toolbox/
 *.ipynb
-# .venv/
+.venv/
 .idea/
 catboost_info/
 other_method/

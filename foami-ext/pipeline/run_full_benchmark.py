@@ -7,16 +7,16 @@ Data split — NO leakage between training and evaluation:
                     used ONLY for adversarial training defense (Steps 4, 5)
 
 Pipeline steps:
-  1a. Generate adv from TVAE train data → adv_training/  (for AT defense)
-  1b. Generate adv from TEST SET        → adv_eval/      (for evaluation, no leakage)
-  2.  Evaluate single models BEFORE AT  (on adv_eval/)
-  3.  Evaluate ensemble / MI BEFORE AT  (per-component adv_eval/ inputs)
-  4.  Merge original train + adv_training/ examples (no TVAE synthetic)
-  5.  Retrain with adversarial training (offline AT, all single models)
-  6.  Stage AT model files with standard filenames
-  7.  Evaluate single models AFTER AT   (same adv_eval/, AT-hardened models)
-  8.  Evaluate ensemble / MI AFTER AT   (same adv_eval/, AT-hardened components)
-  9.  Print before/after comparison table
+  1a.  Generate adv from TVAE train data → adv_training/  (for AT defense)
+  1b.  Generate adv from TEST SET        → adv_eval/      (for evaluation, no leakage)
+  2.   Evaluate single models BEFORE AT  (on adv_eval/)
+  3.   Evaluate ensemble / MI BEFORE AT  (per-component adv_eval/ inputs)
+  4.   Merge original train + adv_training/ examples (no TVAE synthetic)
+  5.   Retrain with adversarial training (offline AT, all single models)
+  6.   Stage AT model files with standard filenames
+  7.   Evaluate single models AFTER AT   (same adv_eval/, AT models)
+  8.   Evaluate ensemble / MI AFTER AT   (same adv_eval/, AT models)
+  9.   Print before/after comparison table
 
 Attack compatibility for GENERATION:
   - Tree (xgb, cat, rf) : zoo, hsja  (black-box only)
@@ -526,8 +526,7 @@ def main():
         fail_fast=args.fail_fast,
     )
 
-    # ── Step 8: Evaluate ensemble/MI AFTER AT (same adv_eval/, AT components) ─
-    # Same adv X as Step 3, but component models are now AT-hardened
+    # ── Step 8: Evaluate ensemble/MI AFTER AT (same adv_eval/, AT models) ────
     step_evaluate_ensemble_mi(
         attacks=args.attacks,
         models_dir=models_dir_at,

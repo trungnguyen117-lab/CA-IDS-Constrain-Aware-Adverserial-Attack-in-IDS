@@ -6,5 +6,5 @@ eps: 0.2               # Maximum L-inf perturbation budget (total allowed distor
 eps_step: 0.01         # Step size per iteration (smaller = finer search, slower)
 max_iter: 200          # Maximum number of PGD iterations
 batch_size: 64         # Number of samples processed per batch
-targeted: true         # true = force a specific target class; false = untargeted
+targeted: false        # true = force a specific target class; false = untargeted
 verbose: true          # Print progress during generation

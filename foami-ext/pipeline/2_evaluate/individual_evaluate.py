@@ -183,8 +183,7 @@ def main():
             if args.confusion_matrix:
                 cm = confusion_matrix(y_adv, y_adv_pred)
                 logger.info("\n" + format_cm(cm, class_names))
-                save_cm_plot(cm, class_names,
-                             title=f"Confusion Matrix — {target} / {tag}",
+                save_cm_plot(cm, class_names, title=f"Confusion Matrix — {target} / {tag}",
                              out_path=os.path.join(report_dir, f"cm_{target}_{tag}.png"))
 
             results.append({

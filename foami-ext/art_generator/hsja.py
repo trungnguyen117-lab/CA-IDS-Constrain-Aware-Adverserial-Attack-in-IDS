@@ -1,4 +1,4 @@
-from art.attacks.evasion import SaliencyMapMethod
+from art.attacks.evasion import HopSkipJump
 from art_generator.attack_generator import AttackGenerator
 import numpy as np
 import pandas as pd
@@ -7,23 +7,25 @@ from contextlib import contextmanager
 import signal
 logger = get_logger(__name__)
 
-class JSMAAttackGenerator(AttackGenerator):
+class HSJAAttackGenerator(AttackGenerator):
     def __init__(self, classifier, generator_params: dict = None):
         super().__init__(classifier, generator_params)
         attack_params = {
-            "theta": 0.02,
-            "gamma": 0.1,
-            "batch_size": 64,
-            "verbose": True,
+            "batch_size": 16,
+            "targeted": False,
+            "norm": 2,
+            "max_iter": 10,
+            "max_eval": 1000,
+            "init_eval": 20,
+            "init_size": 20,
+            "verbose": True
         }
         attack_params = self.update_generator_params(attack_params)
 
-        self.attack = SaliencyMapMethod(classifier = self.classifier,
-            **attack_params
-        )
+        self.attack = HopSkipJump(classifier=self.classifier, **attack_params)
 
     def generate(self, x: np.ndarray, y: np.ndarray, input_metadata: dict, mutate_indices: list[int] = [], **kwargs) -> pd.DataFrame:
-        """Generate adversarial examples using JSMA with optional batching.
+        """Generate adversarial examples using HSJA with optional batching.
 
         Args:
             x: Input samples, shape (N, F)
@@ -38,22 +40,26 @@ class JSMAAttackGenerator(AttackGenerator):
         if x is None or x.size == 0:
             return pd.DataFrame(columns=(input_metadata.get('feature_names', []) + [input_metadata.get('label_column', 'label')]))
 
+        # Create masking array: 1s except for mutate_indices which are 0s
+        mask = np.ones(x.shape)
+        if mutate_indices:
+            mask[:, mutate_indices] = 0
+        logger.info(f"[+] Generating adversarial samples with HSJA, mutate_indices: {mutate_indices}")
+
         batch_size = kwargs.get('batch_size', -1)
         max_retries = int(kwargs.get('max_retries', 3))
         placeholder_mode = kwargs.get('placeholder', 'original')  # 'original' or 'drop'
         timeout_seconds = int(kwargs.get('timeout', -1))  # -1 = no timeout
-        verbose_every = int(kwargs.get('verbose', 0))  # log progress every N batches; 0 = disable
+        verbose_every = int(kwargs.get('verbose', 0))  # log progress every N batches; 0 disables
         n_samples = x.shape[0]
 
         if batch_size is None or batch_size <= 0 or batch_size >= n_samples:
-            logger.info("[+] Generating adversarial samples with JSMA (single batch)")
-            x_adv = self.attack.generate(x=x, y=None)
-            if mutate_indices:
-                x_adv[:, mutate_indices] = x[:, mutate_indices]
+            logger.info("[+] Generating adversarial samples with HSJA (single batch)")
+            x_adv = self.attack.generate(x=x, mask=mask)
             if verbose_every and verbose_every > 0:
-                logger.info("[JSMA] Progress: 1/1 batches, failed=0")
+                logger.info("[HSJA] Progress: 1/1 batches, failed=0")
         else:
-            logger.info(f"[+] Generating adversarial samples with JSMA in batches of {batch_size}")
+            logger.info(f"[+] Generating adversarial samples with HSJA in batches of {batch_size}")
             adv_parts = []
             y_parts = []
             total_batches = (n_samples + batch_size - 1) // batch_size
@@ -63,6 +69,7 @@ class JSMAAttackGenerator(AttackGenerator):
                 end = min(start + batch_size, n_samples)
                 xb = x[start:end]
                 yb = y[start:end]
+                maskb = mask[start:end]
                 # retries
                 attempt = 0
                 last_err = None
@@ -72,9 +79,9 @@ class JSMAAttackGenerator(AttackGenerator):
                     try:
                         if timeout_seconds is not None and timeout_seconds > 0:
                             with _timeout(timeout_seconds):
-                                xb_adv = self.attack.generate(x=xb, y=None)
+                                xb_adv = self.attack.generate(x=xb, mask=maskb)
                         else:
-                            xb_adv = self.attack.generate(x=xb, y=None)
+                            xb_adv = self.attack.generate(x=xb, mask=maskb)
                         break
                     except Exception as e:
                         last_err = e
@@ -87,19 +94,17 @@ class JSMAAttackGenerator(AttackGenerator):
                         failed_batches += 1
                         processed_batches += 1
                         if verbose_every and verbose_every > 0 and (processed_batches % verbose_every == 0 or processed_batches == total_batches):
-                            logger.info(f"[JSMA] Progress: {processed_batches}/{total_batches} batches, failed={failed_batches}")
+                            logger.info(f"[HSJA] Progress: {processed_batches}/{total_batches} batches, failed={failed_batches}")
                         continue
                     else:  # 'original'
                         logger.error(f"Using original samples for failed batch {start}:{end} after {max_retries} retries")
                         xb_adv = xb
                         failed_batches += 1
-                if mutate_indices:
-                    xb_adv[:, mutate_indices] = xb[:, mutate_indices]
                 adv_parts.append(xb_adv)
                 y_parts.append(yb)
                 processed_batches += 1
                 if verbose_every and verbose_every > 0 and (processed_batches % verbose_every == 0 or processed_batches == total_batches):
-                    logger.info(f"[JSMA] Progress: {processed_batches}/{total_batches} batches, failed={failed_batches}")
+                    logger.info(f"[HSJA] Progress: {processed_batches}/{total_batches} batches, failed={failed_batches}")
             if not adv_parts:
                 # all batches dropped
                 return pd.DataFrame(columns=(input_metadata.get('feature_names', []) + [input_metadata.get('label_column', 'label')]))
@@ -119,7 +124,7 @@ def _timeout(seconds: int):
         yield
         return
     def _handle(signum, frame):
-        raise TimeoutError("JSMA generation timed out")
+        raise TimeoutError("HSJA generation timed out")
     old = signal.signal(signal.SIGALRM, _handle)
     signal.alarm(seconds)
     try:

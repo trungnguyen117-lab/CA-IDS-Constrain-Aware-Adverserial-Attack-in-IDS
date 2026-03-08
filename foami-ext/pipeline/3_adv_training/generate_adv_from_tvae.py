@@ -193,30 +193,30 @@ def main():
                                  clip_values, num_classes, input_dim,
                                  args.device).get_estimator()
 
-    elif args.target == 'ensemble':
-        ew, _, _ = parse_ensemble_config(args)
-        wrappers = {}
-        for t in SINGLE_TARGETS:
-            if ew.get(t, 0.0) > 0:
-                logger.info(f"  Loading {t} ...")
-                wrappers[t] = load_wrapper(t, args.models_dir,
-                                           clip_values, num_classes, input_dim, args.device)
-        estimator = EnsembleEstimator(wrappers=wrappers, weights=ew,
-                                      num_classes=num_classes, clip_values=clip_values)
+    # elif args.target == 'ensemble':
+    #     ew, _, _ = parse_ensemble_config(args)
+    #     wrappers = {}
+    #     for t in SINGLE_TARGETS:
+    #         if ew.get(t, 0.0) > 0:
+    #             logger.info(f"  Loading {t} ...")
+    #             wrappers[t] = load_wrapper(t, args.models_dir,
+    #                                        clip_values, num_classes, input_dim, args.device)
+    #     estimator = EnsembleEstimator(wrappers=wrappers, weights=ew,
+    #                                   num_classes=num_classes, clip_values=clip_values)
 
-    elif args.target == 'mi':
-        _, mi_cfg, w_gbt_base = parse_ensemble_config(args)
-        logger.info(f"  MI params: alpha={mi_cfg['alpha']}, beta={mi_cfg['beta']}, "
-                    f"threshold={mi_cfg['threshold']}")
-        logger.info("  Loading GBT wrappers (cat, rf) ...")
-        gbt = {k: load_wrapper(k, args.models_dir, clip_values, num_classes, input_dim, args.device)
-               for k in ('cat', 'rf')}
-        logger.info("  Loading DL wrappers (lstm, resdnn) ...")
-        dl  = {k: load_wrapper(k, args.models_dir, clip_values, num_classes, input_dim, args.device)
-               for k in ('lstm', 'resdnn')}
-        estimator = MIEstimator(gbt_wrappers=gbt, dl_wrappers=dl,
-                                num_classes=num_classes, clip_values=clip_values,
-                                w_gbt_base=w_gbt_base, **mi_cfg)
+    # elif args.target == 'mi':
+    #     _, mi_cfg, w_gbt_base = parse_ensemble_config(args)
+    #     logger.info(f"  MI params: alpha={mi_cfg['alpha']}, beta={mi_cfg['beta']}, "
+    #                 f"threshold={mi_cfg['threshold']}")
+    #     logger.info("  Loading GBT wrappers (cat, rf) ...")
+    #     gbt = {k: load_wrapper(k, args.models_dir, clip_values, num_classes, input_dim, args.device)
+    #            for k in ('cat', 'rf')}
+    #     logger.info("  Loading DL wrappers (lstm, resdnn) ...")
+    #     dl  = {k: load_wrapper(k, args.models_dir, clip_values, num_classes, input_dim, args.device)
+    #            for k in ('lstm', 'resdnn')}
+    #     estimator = MIEstimator(gbt_wrappers=gbt, dl_wrappers=dl,
+    #                             num_classes=num_classes, clip_values=clip_values,
+    #                             w_gbt_base=w_gbt_base, **mi_cfg)
 
     # ── Generate adversarial samples ──────────────────────────────────────────
     logger.info(f"[+] Initialising attack: {args.attack}")
