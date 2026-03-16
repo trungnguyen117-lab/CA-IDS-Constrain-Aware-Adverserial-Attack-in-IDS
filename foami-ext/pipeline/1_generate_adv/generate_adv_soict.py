@@ -32,8 +32,9 @@ from utils.constants import (
     ALL_TARGETS, ALL_ATTACKS, BLACKBOX_ATTACKS,
     GBT_TARGETS, ENSEMBLE_TARGETS, SINGLE_TARGETS,
     DEFAULT_ENSEMBLE_WEIGHTS, DEFAULT_MI_W_GBT_BASE, DEFAULT_MI_PARAMS,
+    validate_attack_target,
 )
-from utils.loaders import load_wrapper
+from utils.loaders import ModelLoader
 from utils.attacks import build_meta, make_generator
 
 from art_classifier.ensemble_classifier import EnsembleEstimator
@@ -75,6 +76,9 @@ def main():
                         help="JSON dict: alpha, beta, threshold, w_gbt_base [cat_w, rf_w]")
     parser.add_argument('--attack-params', type=str, default=None,
                         help="JSON dict of attack-specific params")
+    parser.add_argument('--defense-params', type=str, default=None,
+                        help="JSON dict of preprocessing defence params, e.g. "
+                             "'{\"gaussian_augmentation\":true,\"ga_sigma\":0.1}'")
     parser.add_argument('--log-level', default='INFO',
                         choices=['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'])
     args = parser.parse_args()
@@ -82,17 +86,7 @@ def main():
     setup_logging(args.log_level)
 
     # ── Validate attack compatibility ─────────────────────────────────────────
-    if args.target in GBT_TARGETS and args.attack not in BLACKBOX_ATTACKS:
-        raise SystemExit(
-            f"Target '{args.target}' is a tree model. "
-            f"Only black-box attacks are supported: {BLACKBOX_ATTACKS}. "
-            f"Got: {args.attack}"
-        )
-    if args.target in ENSEMBLE_TARGETS and args.attack not in BLACKBOX_ATTACKS:
-        raise SystemExit(
-            f"Ensemble/MI targets require black-box attacks: {BLACKBOX_ATTACKS}. "
-            f"Got: {args.attack}"
-        )
+    validate_attack_target(args.target, args.attack)
 
     if args.output_dir is None:
         args.output_dir = os.path.join(ADV_DIR, args.target)
@@ -129,44 +123,13 @@ def main():
 
     # ── Build ART estimator ───────────────────────────────────────────────────
     logger.info(f"[+] Building estimator for target={args.target}")
+    defense_params = json.loads(args.defense_params) if args.defense_params else None
+    if defense_params:
+        logger.info(f"[+] Defence params: {defense_params}")
 
-    if args.target in SINGLE_TARGETS:
-        estimator = load_wrapper(args.target, args.models_dir,
-                                 clip_values, num_classes, input_dim,
-                                 args.device).get_estimator()
+    loader = ModelLoader(args.models_dir, clip_values, num_classes, input_dim, args.device)
 
-    elif args.target == 'ensemble':
-        ew = DEFAULT_ENSEMBLE_WEIGHTS.copy()
-        if args.ensemble_weights:
-            ew.update(json.loads(args.ensemble_weights))
-        wrappers = {}
-        for t in SINGLE_TARGETS:
-            if ew.get(t, 0.0) > 0:
-                logger.info(f"  Loading {t} ...")
-                wrappers[t] = load_wrapper(t, args.models_dir,
-                                           clip_values, num_classes, input_dim, args.device)
-        estimator = EnsembleEstimator(wrappers=wrappers, weights=ew,
-                                      num_classes=num_classes, clip_values=clip_values)
-
-    elif args.target == 'mi':
-        mi_cfg     = DEFAULT_MI_PARAMS.copy()
-        w_gbt_base = DEFAULT_MI_W_GBT_BASE.copy()
-        if args.mi_params:
-            parsed = json.loads(args.mi_params)
-            mi_cfg.update({k: v for k, v in parsed.items() if k != 'w_gbt_base'})
-            if 'w_gbt_base' in parsed:
-                w_gbt_base = np.array(parsed['w_gbt_base'], dtype=np.float64)
-        logger.info(f"  MI params: alpha={mi_cfg['alpha']}, beta={mi_cfg['beta']}, "
-                    f"threshold={mi_cfg['threshold']}")
-        logger.info("  Loading GBT wrappers (cat, rf) ...")
-        gbt = {k: load_wrapper(k, args.models_dir, clip_values, num_classes, input_dim, args.device)
-               for k in ('cat', 'rf')}
-        logger.info("  Loading DL wrappers (lstm, resdnn) ...")
-        dl  = {k: load_wrapper(k, args.models_dir, clip_values, num_classes, input_dim, args.device)
-               for k in ('lstm', 'resdnn')}
-        estimator = MIEstimator(gbt_wrappers=gbt, dl_wrappers=dl,
-                                num_classes=num_classes, clip_values=clip_values,
-                                w_gbt_base=w_gbt_base, **mi_cfg)
+    estimator = loader.load(args.target, params=defense_params).get_estimator()
 
     # ── Generate ──────────────────────────────────────────────────────────────
     logger.info(f"[+] Initialising attack: {args.attack}")

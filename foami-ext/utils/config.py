@@ -3,6 +3,7 @@
 Reads YAML files from:
   foami+/config/attacks/{attack}.yaml
   foami+/config/training/{model}.yaml
+  foami+/config/adv_training/{attack}.yaml
 
 Falls back gracefully if PyYAML is not installed or the file is missing.
 """
@@ -12,10 +13,6 @@ import logging
 from .paths import FOAMI_DIR
 
 logger = logging.getLogger(__name__)
-
-_CONFIG_DIR          = os.path.join(FOAMI_DIR, 'config', 'attacks')
-_TRAINING_CONFIG_DIR = os.path.join(FOAMI_DIR, 'config', 'training')
-_AT_CONFIG_DIR       = os.path.join(FOAMI_DIR, 'config', 'adv_training')
 
 
 def _load_yaml(path: str, label: str) -> dict:
@@ -40,40 +37,59 @@ def _load_yaml(path: str, label: str) -> dict:
         return {}
 
 
-def load_attack_config(attack: str) -> dict:
-    """Return params dict from foami+/config/attacks/{attack}.yaml.
+# ── ConfigLoader class ────────────────────────────────────────────────────────
 
-    Priority when used together with make_generator:
-      1. CLI --attack-params  (highest)
-      2. config YAML file     (this function)
-      3. hardcoded defaults inside each ART generator class  (lowest)
+class ConfigLoader:
+    """Unified YAML config loader for attack, training, and adv_training configs.
 
-    Returns an empty dict if the file is missing or PyYAML is unavailable
-    (caller then falls back to the hardcoded defaults).
+    Usage:
+        cfg = ConfigLoader()
+        params = cfg.load('pgd', 'attack')
+        params = cfg.load('lstm', 'training')
+        params = cfg.load('pgd', 'adv_training')
+
+        # With CLI overrides
+        params = cfg.load_with_overrides('pgd', 'adv_training',
+                                          overrides={'eps': 0.1, 'epochs': 50})
     """
-    return _load_yaml(os.path.join(_CONFIG_DIR, f"{attack}.yaml"), attack)
+
+    _CATEGORIES = {
+        'attack':       os.path.join(FOAMI_DIR, 'config', 'attacks'),
+        'training':     os.path.join(FOAMI_DIR, 'config', 'training'),
+        'adv_training': os.path.join(FOAMI_DIR, 'config', 'adv_training'),
+    }
+
+    def load(self, name, category='attack'):
+        """Load YAML config. Returns empty dict if missing."""
+        if category not in self._CATEGORIES:
+            raise ValueError(f"Unknown category: {category}")
+        return _load_yaml(
+            os.path.join(self._CATEGORIES[category], f"{name}.yaml"), name)
+
+    def load_with_overrides(self, name, category, overrides):
+        """Load config then apply CLI overrides (non-None values only)."""
+        cfg = self.load(name, category)
+        for k, v in overrides.items():
+            if v is not None:
+                cfg[k] = v
+        return cfg
 
 
-def load_training_config(model: str) -> dict:
-    """Return params dict from foami+/config/training/{model}.yaml.
+# ── Backward-compatible free functions ────────────────────────────────────────
 
-    Used by train_tree.py and train_dl.py. The returned dict is passed
-    directly as constructor kwargs to the model class (e.g. XGBModel,
-    LSTMModel). Runtime-only values (device, num_class, input_dim) are
-    NOT stored in config — those are injected by the training script.
-
-    Returns an empty dict if the file is missing or PyYAML is unavailable
-    (caller then falls back to the hardcoded defaults in the training script).
-    """
-    return _load_yaml(os.path.join(_TRAINING_CONFIG_DIR, f"{model}.yaml"), model)
+_default_loader = ConfigLoader()
 
 
-def load_adv_training_config(attack: str) -> dict:
-    """Return params dict from foami+/config/adv_training/{attack}.yaml.
+def load_attack_config(attack):
+    """Return params dict from foami+/config/attacks/{attack}.yaml."""
+    return _default_loader.load(attack, 'attack')
 
-    Used by adv_train_dl.py. CLI flags have higher priority and override values
-    returned here (e.g. --eps, --max-iter).
 
-    Returns an empty dict if the file is missing or PyYAML is unavailable.
-    """
-    return _load_yaml(os.path.join(_AT_CONFIG_DIR, f"{attack}.yaml"), attack)
+def load_training_config(model):
+    """Return params dict from foami+/config/training/{model}.yaml."""
+    return _default_loader.load(model, 'training')
+
+
+def load_adv_training_config(attack):
+    """Return params dict from foami+/config/adv_training/{attack}.yaml."""
+    return _default_loader.load(attack, 'adv_training')

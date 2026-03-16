@@ -6,12 +6,19 @@ Data split — NO leakage between training and evaluation:
   adv_training/  ← adversarial examples generated from TVAE TRAIN DATA (train_at.csv)
                     used ONLY for adversarial training defense (Steps 4, 5)
 
+Two separate TVAE augmentations (independent, no leakage):
+  DS/train_tvae.csv                    ← for baseline model training (Step 0)
+  adv_samples/adv_training/train_at.csv ← for adversarial example generation (Step 1a)
+
 Pipeline steps:
-  1a.  Generate adv from TVAE train data → adv_training/  (for AT defense)
-  1b.  Generate adv from TEST SET        → adv_eval/      (for evaluation, no leakage)
+  0a.  TVAE augment train_shap_66 → DS/train_tvae.csv          (for baseline training)
+  0b.  Train baseline models on train_tvae.csv → models/
+  0c.  TVAE augment train_shap_66 → adv_training/train_at.csv  (for adv generation)
+  1a.  Generate adv from train_at.csv → adv_training/           (for AT defense)
+  1b.  Generate adv from TEST SET     → adv_eval/               (for evaluation, no leakage)
   2.   Evaluate single models BEFORE AT  (on adv_eval/)
   3.   Evaluate ensemble / MI BEFORE AT  (per-component adv_eval/ inputs)
-  4.   Merge original train + adv_training/ examples (no TVAE synthetic)
+  4.   Merge train_tvae + adv_training/ examples (per-model or shared)
   5.   Retrain with adversarial training (offline AT, all single models)
   6.   Stage AT model files with standard filenames
   7.   Evaluate single models AFTER AT   (same adv_eval/, AT models)
@@ -64,9 +71,10 @@ sys.path.insert(0, _FOAMI)
 
 from utils.paths import (
     setup_paths, ROOT_DIR, MODELS_DIR,
-    AT_DIR, AT_MERGED_CSV,
+    AT_DIR, AT_TRAIN_CSV, AT_MERGED_CSV,
     ADV_EVAL_DIR,
     TRAIN_ORIG_CSV, TRAIN_CSV, TEST_CSV,
+    adv_csv,
 )
 setup_paths()
 
@@ -94,9 +102,12 @@ _GEN_COMPAT: dict[str, set] = {
 _AT_NAMES = {m: (MODEL_AT_FILENAMES[m], MODEL_FILENAMES[m]) for m in SINGLE_TARGETS}
 
 # ── Script paths ────────────────────────────────────────────────────────────────
+_PREPARE_AT  = os.path.join(_HERE, '3_adv_training', 'prepare_adv_data.py')
 _GEN_TVAE    = os.path.join(_HERE, '3_adv_training', 'generate_adv_from_tvae.py')
 _MERGE       = os.path.join(_HERE, '3_adv_training', 'merge_adv_data.py')
 _RETRAIN_AT  = os.path.join(_HERE, '3_adv_training', 'retrain_at.py')
+_TRAIN_TREE  = os.path.join(_HERE, '0_training',     'train_tree.py')
+_TRAIN_DL    = os.path.join(_HERE, '0_training',     'train_dl.py')
 _EVALUATE    = os.path.join(_HERE, '2_evaluate',     'individual_evaluate.py')
 _EVAL_ENS_MI = os.path.join(_HERE, '2_evaluate',     'evaluate_ensemble_mi.py')
 
@@ -114,13 +125,63 @@ def _run(cmd: list[str], step: str, fail_fast: bool) -> bool:
     return True
 
 
-def _adv_dir(target: str) -> str:
-    return os.path.join(AT_DIR, target)
 
 
-def _adv_csv(target: str, attack: str) -> str:
-    return os.path.join(_adv_dir(target), f"{target}_{attack}_adv.csv")
+# ── Step 0: TVAE augment + train baseline models ──────────────────────────────
 
+def step_tvae_augment(out_csv: str, sample_max: int, labels: list[int],
+                      device: str, fail_fast: bool, force: bool = False) -> bool:
+    """TVAE augment train_shap_66.csv → out_csv.
+
+    Only augments the specified labels (under-represented classes) up to sample_max.
+    """
+    label = os.path.basename(out_csv)
+    if os.path.exists(out_csv) and not force:
+        logger.info(f"  SKIP (exists): {label}")
+        return True
+
+    cmd = [
+        sys.executable, _PREPARE_AT,
+        '--train-csv', TRAIN_ORIG_CSV,
+        '--out-csv', out_csv,
+        '--sample-max', str(sample_max),
+    ]
+    if labels:
+        cmd += ['--labels'] + [str(l) for l in labels]
+    if device in ('cpu',):
+        cmd.append('--no-cuda')
+    return _run(cmd, f"tvae-augment → {label}", fail_fast)
+
+
+def step_train_baseline(device: str, fail_fast: bool) -> bool:
+    """Train all baseline models on train_tvae.csv."""
+    logger.info(f"\n{'='*60}")
+    logger.info(f"  STEP 0b — Train baseline models on {TRAIN_CSV}")
+    logger.info(f"{'='*60}")
+
+    ok = True
+    # Tree models
+    cmd_tree = [
+        sys.executable, _TRAIN_TREE,
+        '--model', 'all',
+        '--train-csv', TRAIN_CSV,
+        '--test-csv', TEST_CSV,
+        '--models-dir', MODELS_DIR,
+        '--device', device,
+    ]
+    ok = _run(cmd_tree, "train-tree baseline", fail_fast) and ok
+
+    # DL models
+    cmd_dl = [
+        sys.executable, _TRAIN_DL,
+        '--model', 'all',
+        '--train-csv', TRAIN_CSV,
+        '--test-csv', TEST_CSV,
+        '--models-dir', MODELS_DIR,
+        '--device', device,
+    ]
+    ok = _run(cmd_dl, "train-dl baseline", fail_fast) and ok
+    return ok
 
 
 # ── Step 1a: Generate adv from TVAE train data (for AT defense) ─────────────────
@@ -145,7 +206,7 @@ def step_generate_at(attacks: list[str], samples_per_class: int,
 
     ok, skipped, failed = 0, 0, []
     for i, (target, attack) in enumerate(pairs, 1):
-        out_csv = _adv_csv(target, attack)
+        out_csv = adv_csv(target, attack, AT_DIR)
         if os.path.exists(out_csv) and not force:
             logger.info(f"  [{i}/{len(pairs)}] SKIP (exists): {target} × {attack}")
             skipped += 1
@@ -155,8 +216,9 @@ def step_generate_at(attacks: list[str], samples_per_class: int,
         cmd = [
             sys.executable, _GEN_TVAE,
             '--target', target, '--attack', attack,
+            '--data-in', AT_TRAIN_CSV,      # TVAE-augmented train data
             '--device', device,
-            '--output-dir', _adv_dir(target),
+            '--output-dir', os.path.join(AT_DIR, target),
         ]
         if samples_per_class > 0:
             cmd += ['--samples-per-class', str(samples_per_class)]
@@ -224,7 +286,8 @@ def step_generate_eval(attacks: list[str], device: str, fail_fast: bool,
 # ── Step 2/7: Evaluate single models ───────────────────────────────────────────
 
 def step_evaluate_single(attacks: list[str], models_dir: str, adv_dir: str,
-                         label: str, output_csv: str, fail_fast: bool):
+                         label: str, output_csv: str, fail_fast: bool,
+                         save_cm: bool = False, report_dir: str = None):
     """Evaluate each single model against adv CSVs from adv_dir (adv_eval/)."""
     logger.info(f"\n{'='*60}")
     logger.info(f"  EVALUATE single models — {label}")
@@ -248,13 +311,18 @@ def step_evaluate_single(attacks: list[str], models_dir: str, adv_dir: str,
         '--per-class',
         '--fallback-target', 'lstm',   # tree models (rf/xgb/cat) fall back to lstm adv CSVs
     ]
+    if save_cm:
+        cmd.append('--confusion-matrix')
+        if report_dir:
+            cmd += ['--report-dir', report_dir]
     _run(cmd, f"evaluate single ({label})", fail_fast)
 
 
 # ── Step 3/8: Evaluate ensemble / MI ───────────────────────────────────────────
 
 def step_evaluate_ensemble_mi(attacks: list[str], models_dir: str, adv_dir: str,
-                               label: str, output_csv: str, fail_fast: bool):
+                               label: str, output_csv: str, fail_fast: bool,
+                               save_cm: bool = False, report_dir: str = None):
     """Evaluate ensemble and MI with per-component adversarial inputs from adv_dir.
 
     Each component model receives the adv X (from adv_eval/) generated against
@@ -275,18 +343,29 @@ def step_evaluate_ensemble_mi(attacks: list[str], models_dir: str, adv_dir: str,
         '--models-dir', models_dir,
         '--output-csv', output_csv,
     ]
+    if save_cm:
+        cmd.append('--confusion-matrix')
+        if report_dir:
+            cmd += ['--report-dir', report_dir]
     _run(cmd, f"evaluate ensemble/mi ({label})", fail_fast)
 
 
 # ── Step 4: Merge ───────────────────────────────────────────────────────────────
 
 def step_merge(attacks: list[str], fail_fast: bool,
-               include_tvae: bool = False) -> bool:
+               include_tvae: bool = False,
+               per_model: bool = False,
+               merge_threshold: int = -1) -> bool:
     logger.info(f"\n{'='*60}")
-    logger.info(f"  STEP 4 — Merge original train + adversarial examples")
-    logger.info(f"  base-csv: {TRAIN_ORIG_CSV}")
-    if include_tvae:
+    if per_model:
+        logger.info(f"  STEP 4 — Per-model merge (base=train_tvae + model-specific adv)")
+    else:
+        logger.info(f"  STEP 4 — Merge original train + adversarial examples")
+    logger.info(f"  base-csv: {TRAIN_CSV if per_model else TRAIN_ORIG_CSV}")
+    if include_tvae and not per_model:
         logger.info(f"  extra   : {TRAIN_CSV}  (TVAE-augmented)")
+    if per_model and merge_threshold > 0:
+        logger.info(f"  sample-threshold: {merge_threshold}")
     logger.info(f"{'='*60}")
 
     compatible_attacks = sorted({
@@ -296,32 +375,54 @@ def step_merge(attacks: list[str], fail_fast: bool,
 
     cmd = [
         sys.executable, _MERGE,
-        '--base-csv', TRAIN_ORIG_CSV,
         '--adv-dir',  AT_DIR,
         '--targets',  *SINGLE_TARGETS,
         '--attacks',  *compatible_attacks,
-        '--out-csv',  AT_MERGED_CSV,
     ]
-    if include_tvae:
-        cmd += ['--extra-csv', TRAIN_CSV]
+
+    if per_model:
+        cmd += [
+            '--per-model',
+            '--base-csv', TRAIN_CSV,
+            '--out-csv', os.path.join(AT_DIR, 'train_at_merged.csv'),  # dir hint
+        ]
+        if merge_threshold > 0:
+            cmd += ['--sample-threshold', str(merge_threshold)]
+    else:
+        cmd += [
+            '--base-csv', TRAIN_ORIG_CSV,
+            '--out-csv',  AT_MERGED_CSV,
+        ]
+        if include_tvae:
+            cmd += ['--extra-csv', TRAIN_CSV]
+
     return _run(cmd, "merge", fail_fast)
 
 
 # ── Step 5: Retrain AT ──────────────────────────────────────────────────────────
 
-def step_retrain(device: str, fail_fast: bool) -> bool:
+def step_retrain(device: str, fail_fast: bool,
+                 per_model: bool = False) -> bool:
     logger.info(f"\n{'='*60}")
-    logger.info(f"  STEP 5 — Adversarial training (offline AT, all single models)")
+    if per_model:
+        logger.info(f"  STEP 5 — Per-model adversarial training")
+    else:
+        logger.info(f"  STEP 5 — Adversarial training (offline AT, all single models)")
     logger.info(f"{'='*60}")
 
     cmd = [
         sys.executable, _RETRAIN_AT,
         '--model',     *SINGLE_TARGETS,
-        '--train-csv', AT_MERGED_CSV,
         '--test-csv',  TEST_CSV,
         '--models-dir', MODELS_DIR,
         '--device',    device,
     ]
+
+    if per_model:
+        cmd += ['--per-model-dir', AT_DIR]
+    else:
+        cmd += ['--train-csv', AT_MERGED_CSV]
+
     return _run(cmd, "retrain_at", fail_fast)
 
 
@@ -406,6 +507,12 @@ def main():
     parser.add_argument('--device', default='cpu', choices=['cpu', 'cuda', 'auto'])
     parser.add_argument('--samples-per-class', type=int, default=1000,
                         help="Samples per class for adv generation (default: 1000)")
+    parser.add_argument('--skip-baseline', action='store_true',
+                        help="Skip Step 0 — reuse existing train_tvae.csv and baseline models")
+    parser.add_argument('--tvae-sample-max', type=int, default=800,
+                        help="Target samples per class for TVAE augmentation (default: 800)")
+    parser.add_argument('--tvae-labels', type=int, nargs='*', default=None,
+                        help="Labels (classes) to augment with TVAE (default: all classes)")
     parser.add_argument('--skip-gen', action='store_true',
                         help="Skip Steps 1a+1b — reuse existing adv CSVs in both "
                              "adv_training/ and adv_eval/")
@@ -418,6 +525,14 @@ def main():
                         help="Step 4: also include the TVAE-augmented train set "
                              f"({TRAIN_CSV}) in the merge alongside the original train "
                              "and adversarial examples")
+    parser.add_argument('--per-model', action='store_true',
+                        help="Per-model merge + retrain: each model gets its own "
+                             "merged CSV with model-specific adv pairs (recommended)")
+    parser.add_argument('--merge-threshold', type=int, default=-1,
+                        help="Max adv samples per adv CSV in per-model merge "
+                             "(-1 = no limit, default: -1)")
+    parser.add_argument('--save-cm', action='store_true',
+                        help="Save confusion matrix plots for all evaluation steps")
     parser.add_argument('--force', action='store_true',
                         help="Force re-run all steps, overwriting existing adv CSVs "
                              "and report files")
@@ -457,6 +572,26 @@ def main():
     logger.info("    adv_training/  ← from TVAE data → AT defense only")
     logger.info("=" * 60)
 
+    # ── Step 0: TVAE augment + train baseline models ─────────────────────────
+    if not args.skip_baseline:
+        logger.info(f"\n{'='*60}")
+        logger.info(f"  STEP 0a — TVAE augment → {TRAIN_CSV}")
+        logger.info(f"{'='*60}")
+        step_tvae_augment(TRAIN_CSV, args.tvae_sample_max, args.tvae_labels,
+                          args.device, args.fail_fast, args.force)
+
+        step_train_baseline(args.device, args.fail_fast)
+    else:
+        logger.info("\n[SKIP] Step 0 — baseline training (--skip-baseline)")
+
+    # ── Step 0c: TVAE augment for AT (separate from baseline TVAE) ─────────
+    if not args.skip_gen:
+        logger.info(f"\n{'='*60}")
+        logger.info(f"  STEP 0c — TVAE augment → {AT_TRAIN_CSV}  (for adv generation)")
+        logger.info(f"{'='*60}")
+        step_tvae_augment(AT_TRAIN_CSV, args.tvae_sample_max, args.tvae_labels,
+                          args.device, args.fail_fast, args.force)
+
     # ── Step 1a: Generate adv from TVAE train data → adv_training/ (for AT) ──
     if not args.skip_gen:
         step_generate_at(
@@ -480,6 +615,9 @@ def main():
     else:
         logger.info("\n[SKIP] Step 1b — adv_eval/ generation (--skip-gen / --skip-eval-gen)")
 
+    cm_dir_before = os.path.join(report_dir, 'cm_before_at') if args.save_cm else None
+    cm_dir_after  = os.path.join(report_dir, 'cm_after_at')  if args.save_cm else None
+
     # ── Step 2: Evaluate single models BEFORE AT (on adv_eval/) ──────────────
     step_evaluate_single(
         attacks=args.attacks,
@@ -488,6 +626,8 @@ def main():
         label="BEFORE AT",
         output_csv=csv_before_single,
         fail_fast=args.fail_fast,
+        save_cm=args.save_cm,
+        report_dir=cm_dir_before,
     )
 
     # ── Step 3: Evaluate ensemble/MI BEFORE AT (on adv_eval/) ────────────────
@@ -500,15 +640,20 @@ def main():
         label="BEFORE AT",
         output_csv=csv_before_ensemble,
         fail_fast=args.fail_fast,
+        save_cm=args.save_cm,
+        report_dir=cm_dir_before,
     )
 
     if not args.skip_at:
-        # ── Step 4: Merge (uses adv_training/ — from TVAE data, no test leakage)
+        # ── Step 4: Merge (uses adv_training/ — from train data, no test leakage)
         step_merge(attacks=args.attacks, fail_fast=args.fail_fast,
-                   include_tvae=args.merge_include_tvae)
+                   include_tvae=args.merge_include_tvae,
+                   per_model=args.per_model,
+                   merge_threshold=args.merge_threshold)
 
         # ── Step 5: Retrain AT ────────────────────────────────────────────────
-        step_retrain(device=args.device, fail_fast=args.fail_fast)
+        step_retrain(device=args.device, fail_fast=args.fail_fast,
+                     per_model=args.per_model)
 
         # ── Step 6: Stage AT models ───────────────────────────────────────────
         step_stage_at_models(models_dir_at)
@@ -524,6 +669,8 @@ def main():
         label="AFTER AT",
         output_csv=csv_after_single,
         fail_fast=args.fail_fast,
+        save_cm=args.save_cm,
+        report_dir=cm_dir_after,
     )
 
     # ── Step 8: Evaluate ensemble/MI AFTER AT (same adv_eval/, AT models) ────
@@ -534,6 +681,8 @@ def main():
         label="AFTER AT",
         output_csv=csv_after_ensemble,
         fail_fast=args.fail_fast,
+        save_cm=args.save_cm,
+        report_dir=cm_dir_after,
     )
 
     # ── Step 9: Comparison tables ─────────────────────────────────────────────

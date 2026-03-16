@@ -61,7 +61,8 @@ class _LSTMTabular(nn.Module):
             nn.Linear(d_out // 2, n_classes),
         )
 
-    def forward(self, x: torch.Tensor) -> torch.Tensor:  # x: [B, F]
+    def forward(self, x: torch.Tensor, return_features: bool = False) -> torch.Tensor:  # x: [B, F]
+        x = x.to(self.in_norm.weight.dtype)
         B, F = x.shape
         S = int(math.ceil(F / self.step_dim))
         pad = S * self.step_dim - F
@@ -69,7 +70,11 @@ class _LSTMTabular(nn.Module):
             x = nn.functional.pad(x, (0, pad))
         x = self.in_norm(x.view(B, S, self.step_dim))
         H, _ = self.lstm(x)
-        return self.head(self.pool(H))
+        features = self.pool(H)           # [B, d_out]
+        logits = self.head(features)       # [B, n_classes]
+        if return_features:
+            return logits, features
+        return logits
 
 
 # ── Training wrapper ──────────────────────────────────────────────────────────
@@ -165,8 +170,8 @@ class LSTMModel(Model):
             for xb, yb in train_loader:
                 xb, yb = xb.to(self.device), yb.to(self.device)
                 optimizer.zero_grad()
-                nn.utils.clip_grad_norm_(self.model.parameters(), 1.0)
                 criterion(self.model(xb), yb).backward()
+                nn.utils.clip_grad_norm_(self.model.parameters(), 1.0)
                 optimizer.step()
 
             if val_loader is None:

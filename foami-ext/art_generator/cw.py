@@ -27,7 +27,7 @@ class CWAttackGenerator(AttackGenerator):
 
     def generate(self, x: np.ndarray, y: np.ndarray, input_metadata: dict, mutate_indices: list[int] = [], **kwargs):
         # Generate adversarial features
-        x_adv = self.attack.generate(x=x, y=y)
+        x_adv = self.attack.generate(x=x)
         if mutate_indices:
             x_adv[:, mutate_indices] = x[:, mutate_indices]
         # y is mandatory: return DataFrame combining X_adv and y

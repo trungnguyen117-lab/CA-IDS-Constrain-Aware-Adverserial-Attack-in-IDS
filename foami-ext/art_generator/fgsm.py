@@ -11,7 +11,7 @@ class FGSMAttackGenerator(AttackGenerator):
         attack_params = {
             "eps": 0.1,
             "batch_size": 64,
-            "eps_step": 0.01,
+            "eps_step": 0.1,
             "targeted": False,
         }
         attack_params = self.update_generator_params(attack_params)
@@ -26,7 +26,7 @@ class FGSMAttackGenerator(AttackGenerator):
         mask[:, mutate_indices] = 0
         logger.info(f"[+] Generating adversarial samples with FGSM, mutate_indices: {mutate_indices}")
         # Generate adversarial features
-        x_adv = self.attack.generate(x=x, y=y, mask=mask)
+        x_adv = self.attack.generate(x=x, mask=mask)
         # y is mandatory: return DataFrame combining X_adv and y
         y_arr = y.reshape(-1) if y.ndim > 1 else y
         feature_names = input_metadata['feature_names']

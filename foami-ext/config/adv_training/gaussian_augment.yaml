@@ -1,0 +1,9 @@
+# Gaussian Augmentation — offline data augmentation for adversarial training
+#
+# sigma : std deviation of Gaussian noise added to each feature
+# ratio : number of noisy copies per original sample
+# clip  : clip noisy samples to original data range
+
+sigma: 0.1
+ratio: 1
+clip: true

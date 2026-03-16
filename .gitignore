@@ -1,6 +1,6 @@
 models/
 models_at/
-adversarial-robustness-toolbox/
+# adversarial-robustness-toolbox/
 *.ipynb
 .venv/
 .idea/
@@ -9,7 +9,7 @@ other_method/
 CLAUDE.md
 .DS_Store
 tvae-aug.py
-apelid/
+# apelid/
 *.pdf
 backup
 DS/

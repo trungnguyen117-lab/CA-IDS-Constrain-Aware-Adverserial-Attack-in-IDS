@@ -44,18 +44,15 @@ TEST_CSV       = os.path.join(DATA_DIR,  'test_shap_66.csv')
 
 # Adversarial-training data directory (adv generated from TVAE train data → used for AT)
 AT_DIR        = os.path.join(ADV_DIR,  'adv_training')
+
 AT_TRAIN_CSV  = os.path.join(AT_DIR,   'train_at.csv')        # TVAE-augmented
+AT_GA_CSV     = os.path.join(AT_DIR,   'train_at_ga.csv')     # Gaussian-augmented
 AT_MERGED_CSV = os.path.join(AT_DIR,   'train_at_merged.csv') # TVAE + adversarial examples
 
 # Adversarial-evaluation directory (adv generated from test set → used ONLY for evaluation)
 # Keeping this separate from AT_DIR avoids any form of data leakage between
 # the adversarial-training pipeline and the benchmark evaluation pipeline.
 ADV_EVAL_DIR  = os.path.join(ADV_DIR,  'adv_eval')
-
-# Adaptive adversarial-evaluation directory (adv generated from test set using AT models)
-# These examples are crafted against the AT-hardened models, providing a fair
-# evaluation of adversarial robustness after adversarial training.
-ADV_EVAL_AT_DIR = os.path.join(ADV_DIR, 'adv_eval_at')
 
 
 def adv_csv(target: str, attack: str, adv_dir: str = ADV_DIR) -> str:

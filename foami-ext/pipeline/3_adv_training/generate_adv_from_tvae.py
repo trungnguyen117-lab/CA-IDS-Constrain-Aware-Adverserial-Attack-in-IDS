@@ -56,15 +56,12 @@ setup_paths()
 
 from utils.logging   import setup_logging, get_logger
 from utils.constants import (
-    ALL_TARGETS, ALL_ATTACKS, BLACKBOX_ATTACKS,
-    GBT_TARGETS, ENSEMBLE_TARGETS, SINGLE_TARGETS,
-    LABEL_COL,
+    ALL_TARGETS, ALL_ATTACKS,
+    SINGLE_TARGETS, LABEL_COL,
+    validate_attack_target,
 )
-from utils.loaders import load_wrapper, parse_ensemble_config
+from utils.loaders import ModelLoader
 from utils.attacks import build_meta, make_generator
-
-from art_classifier.ensemble_classifier import EnsembleEstimator
-from art_classifier.mi_classifier       import MIEstimator
 
 logger = get_logger(__name__)
 
@@ -118,17 +115,7 @@ def main():
     setup_logging(args.log_level)
 
     # ── Validate attack compatibility ─────────────────────────────────────────
-    if args.target in GBT_TARGETS and args.attack not in BLACKBOX_ATTACKS:
-        raise SystemExit(
-            f"Target '{args.target}' is a tree model. "
-            f"Only black-box attacks are supported: {BLACKBOX_ATTACKS}. "
-            f"Got: {args.attack}"
-        )
-    if args.target in ENSEMBLE_TARGETS and args.attack not in BLACKBOX_ATTACKS:
-        raise SystemExit(
-            f"Ensemble/MI targets require black-box attacks: {BLACKBOX_ATTACKS}. "
-            f"Got: {args.attack}"
-        )
+    validate_attack_target(args.target, args.attack)
 
     # ── Default output under adv_training/ (not adv_samples/{target}/) ────────
     if args.output_dir is None:
@@ -187,36 +174,10 @@ def main():
 
     # ── Build ART estimator ───────────────────────────────────────────────────
     logger.info(f"[+] Building estimator for target={args.target}")
+    loader = ModelLoader(args.models_dir, clip_values, num_classes, input_dim, args.device)
 
     if args.target in SINGLE_TARGETS:
-        estimator = load_wrapper(args.target, args.models_dir,
-                                 clip_values, num_classes, input_dim,
-                                 args.device).get_estimator()
-
-    # elif args.target == 'ensemble':
-    #     ew, _, _ = parse_ensemble_config(args)
-    #     wrappers = {}
-    #     for t in SINGLE_TARGETS:
-    #         if ew.get(t, 0.0) > 0:
-    #             logger.info(f"  Loading {t} ...")
-    #             wrappers[t] = load_wrapper(t, args.models_dir,
-    #                                        clip_values, num_classes, input_dim, args.device)
-    #     estimator = EnsembleEstimator(wrappers=wrappers, weights=ew,
-    #                                   num_classes=num_classes, clip_values=clip_values)
-
-    # elif args.target == 'mi':
-    #     _, mi_cfg, w_gbt_base = parse_ensemble_config(args)
-    #     logger.info(f"  MI params: alpha={mi_cfg['alpha']}, beta={mi_cfg['beta']}, "
-    #                 f"threshold={mi_cfg['threshold']}")
-    #     logger.info("  Loading GBT wrappers (cat, rf) ...")
-    #     gbt = {k: load_wrapper(k, args.models_dir, clip_values, num_classes, input_dim, args.device)
-    #            for k in ('cat', 'rf')}
-    #     logger.info("  Loading DL wrappers (lstm, resdnn) ...")
-    #     dl  = {k: load_wrapper(k, args.models_dir, clip_values, num_classes, input_dim, args.device)
-    #            for k in ('lstm', 'resdnn')}
-    #     estimator = MIEstimator(gbt_wrappers=gbt, dl_wrappers=dl,
-    #                             num_classes=num_classes, clip_values=clip_values,
-    #                             w_gbt_base=w_gbt_base, **mi_cfg)
+        estimator = loader.load(args.target).get_estimator()
 
     # ── Generate adversarial samples ──────────────────────────────────────────
     logger.info(f"[+] Initialising attack: {args.attack}")

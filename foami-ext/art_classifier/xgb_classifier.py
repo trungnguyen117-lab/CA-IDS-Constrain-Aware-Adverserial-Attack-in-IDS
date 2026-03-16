@@ -5,7 +5,7 @@ from .art_classifier import AdversarialWrapper
 from utils.logging import get_logger
 from typing import Tuple
 logger = get_logger(__name__)
-
+import numpy as np
 
 class XGBWrapper(AdversarialWrapper):
     """ART wrapper for XGBoost models via ART's XGBoostClassifier.
@@ -51,7 +51,11 @@ class XGBWrapper(AdversarialWrapper):
             nb_classes=self.num_classes,
             preprocessing_defences=defences,
         )
-
+    
+    def predict_proba(self, X: np.ndarray) -> np.ndarray:
+        """Return probabilities directly — XGBoost ART wrapper already outputs probabilities."""
+        estimator = self.get_estimator()
+        return estimator.predict(X.astype(np.float32, copy=False))
 
     # ---------- Factory helpers ----------
     @classmethod

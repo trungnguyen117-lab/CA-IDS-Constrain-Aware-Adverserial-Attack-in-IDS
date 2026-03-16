@@ -1,4 +1,6 @@
-"""Evaluate SOICT25 models on plain and adversarial samples.
+"""Evaluate individual SOICT25 models on plain and adversarial samples.
+
+For ensemble/MI evaluation, use evaluate_ensemble_mi.py instead.
 
 Usage:
     # Single target, single attack
@@ -6,10 +8,6 @@ Usage:
 
     # Multiple targets + multiple attacks
     python individual_evaluate.py --target cat rf lstm resdnn --attack zoo hsja
-
-    # Ensemble / MI targets
-    python individual_evaluate.py --target ensemble --attack zoo
-    python individual_evaluate.py --target mi --attack zoo hsja
 
     # Explicit adv CSV paths
     python individual_evaluate.py --target cat --adv-in ../../adv_samples/cat/cat_zoo_adv.csv
@@ -20,6 +18,7 @@ Usage:
 
 import os
 import sys
+import json
 import argparse
 
 # ── macOS / PyTorch compatibility (must be set before torch is imported) ────────
@@ -29,24 +28,22 @@ os.environ.setdefault('MKL_NUM_THREADS', '1')
 os.environ.setdefault('PYTORCH_ENABLE_MPS_FALLBACK', '1')
 
 import numpy as np
-import pandas as pd
-from prettytable import PrettyTable
-from sklearn.metrics import accuracy_score, f1_score, classification_report, confusion_matrix
+from sklearn.metrics import classification_report
 
 # ── Path bootstrap (minimal — resolves foami+/ then delegates to utils.paths) ─
 _HERE  = os.path.dirname(os.path.realpath(__file__))
 _FOAMI = os.path.dirname(os.path.dirname(_HERE))   # foami+/
 sys.path.insert(0, _FOAMI)
 
-from utils.paths import (
-    setup_paths, ROOT_DIR, FOAMI_DIR, MODELS_DIR, ADV_DIR, REPORT_DIR, TEST_CSV,
-)
+from utils.paths import setup_paths, MODELS_DIR, ADV_DIR, REPORT_DIR, TEST_CSV
 setup_paths()
 
 from utils.logging    import setup_logging, get_logger
-from utils.constants  import ALL_TARGETS, ALL_ATTACKS, LABEL_COL
-from utils.loaders    import require_file, build_predictor, load_features_csv, parse_ensemble_config
-from utils.evaluation import predict_safe, asr, format_cm, save_cm_plot
+from utils.constants  import (SINGLE_TARGETS, ALL_ATTACKS, LABEL_COL, MODEL_FILENAMES,
+                              MODEL_AT_FILENAMES, MODEL_SCL_FILENAMES)
+from utils.loaders    import load_features_csv, ModelLoader
+from utils.data       import DataManager
+from utils.evaluation import Evaluator
 
 logger = get_logger(__name__)
 
@@ -58,7 +55,7 @@ def main():
         description="Evaluate SOICT25 models on plain and adversarial samples"
     )
     parser.add_argument('--target', '-t', nargs='+', required=True,
-                        choices=ALL_TARGETS)
+                        choices=SINGLE_TARGETS)
     parser.add_argument('--attack', '-a', nargs='*', default=None,
                         choices=ALL_ATTACKS,
                         help="Attack name(s); resolves default adv CSV path")
@@ -72,8 +69,6 @@ def main():
                         help="Models directory (default: <ROOT>/models)")
     parser.add_argument('--device', '-d', default='cpu',
                         choices=['cpu', 'cuda', 'auto'])
-    parser.add_argument('--ensemble-weights', type=str, default=None)
-    parser.add_argument('--mi-params', type=str, default=None)
     parser.add_argument('--per-class', action='store_true',
                         help="Print per-class classification report")
     parser.add_argument('--confusion-matrix', '--cm', action='store_true',
@@ -83,14 +78,37 @@ def main():
     parser.add_argument('--output-csv', default=None,
                         help="Save summary results to CSV")
     parser.add_argument('--fallback-target', default=None,
-                        choices=ALL_TARGETS,
+                        choices=SINGLE_TARGETS,
                         help="Fallback model to use when target's adv CSV is missing "
                              "(e.g. --fallback-target lstm for tree models)")
+    parser.add_argument('--model-type', default='plain',
+                        choices=['plain', 'at', 'scl'],
+                        help="Model checkpoint type: plain (default), at (adversarial training), or scl (contrastive)")
+    parser.add_argument('--checkpoint-suffix', default=None,
+                        help="Override checkpoint suffix for all targets, e.g. '_at_pgd_fgsm'. "
+                             "Result: framework_{target}_TVAE{suffix}.pth/pkl. Takes priority over --model-type.")
+    parser.add_argument('--defense-params', type=str, default=None,
+                        help="JSON dict of preprocessing defence params, e.g. "
+                             "'{\"gaussian_augmentation\":true,\"ga_sigma\":0.1}'")
     parser.add_argument('--log-level', default='INFO',
                         choices=['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'])
     args = parser.parse_args()
 
     setup_logging(args.log_level)
+
+    if args.checkpoint_suffix is not None:
+        suffix = args.checkpoint_suffix
+        for key in MODEL_FILENAMES:
+            base = f'framework_{key}_TVAE'
+            ext = '.pth' if key in ('lstm', 'resdnn') else '.pkl'
+            MODEL_FILENAMES[key] = f'{base}{suffix}{ext}'
+        logger.info(f"[+] Using checkpoint suffix: {suffix}")
+    elif args.model_type == 'at':
+        MODEL_FILENAMES.update(MODEL_AT_FILENAMES)
+        logger.info("[+] Using adversarial training (AT) model checkpoints")
+    elif args.model_type == 'scl':
+        MODEL_FILENAMES.update(MODEL_SCL_FILENAMES)
+        logger.info("[+] Using supervised contrastive learning (SCL) model checkpoints")
 
     if not args.attack and not args.adv_in:
         raise SystemExit("Provide --attack and/or --adv-in")
@@ -104,49 +122,41 @@ def main():
         os.makedirs(report_dir, exist_ok=True)
         logger.info(f"[+] CM plots will be saved to: {report_dir}")
 
-    # ── Load plain data ───────────────────────────────────────────────────────
-    require_file(plain_in)
+    # ── Load plain data via DataManager ───────────────────────────────────────
     logger.info(f"[+] Plain: {plain_in}")
-    X_plain, y_plain = load_features_csv(plain_in, label_col=LABEL_COL)
-    num_classes = len(np.unique(y_plain))
-    input_dim   = X_plain.shape[1]
-    clip_values = (float(X_plain.min()), float(X_plain.max()))
+    dm = DataManager(test_csv=plain_in)
+    X_plain, y_plain = dm.test_data
     class_names = [str(c) for c in sorted(np.unique(y_plain).tolist())]
-    logger.info(f"[+] Shape={X_plain.shape}, classes={num_classes}")
+    logger.info(f"[+] Shape={X_plain.shape}, classes={dm.num_classes}")
 
-    # ── Parse ensemble/MI configs ─────────────────────────────────────────────
-    ew, mi_cfg, w_gbt_base = parse_ensemble_config(args)
+    # ── Evaluator + ModelLoader ───────────────────────────────────────────────
+    ev = Evaluator(class_names=class_names, report_dir=report_dir)
+    loader = ModelLoader(models_dir, dm.clip_values, dm.num_classes, dm.input_dim, args.device)
 
     global_adv_tasks = ([(os.path.basename(p), p) for p in args.adv_in]
                         if args.adv_in else None)
 
-    # ── Evaluate each target ──────────────────────────────────────────────────
     results = []
+    defense_params = json.loads(args.defense_params) if args.defense_params else None
+    if defense_params:
+        logger.info(f"[+] Defence params: {defense_params}")
 
     for target in args.target:
         logger.info(f"\n{'='*60}\n  Target: {target}\n{'='*60}")
 
-        predictor = build_predictor(target, models_dir, clip_values,
-                                    num_classes, input_dim, args.device,
-                                    ew, mi_cfg, w_gbt_base)
+        model_wrapper = loader.load(target, params=defense_params)
 
-        # Plain
+        # Plain evaluation
         logger.info("[+] Plain evaluation ...")
-        y_plain_pred = predict_safe(predictor, X_plain)
-        plain_acc = float(accuracy_score(y_plain, y_plain_pred))
-        plain_f1  = float(f1_score(y_plain, y_plain_pred, average='macro', zero_division=0))
-        logger.info(f"    Acc={plain_acc*100:.2f}%  Macro-F1={plain_f1*100:.2f}%")
+        y_plain_pred = ev.predict_safe(model_wrapper, X_plain)
+        plain_metrics = ev.report(f'{target}-plain', y_plain, y_plain_pred)
         if args.per_class:
             logger.info("\n" + classification_report(
                 y_plain, y_plain_pred, target_names=class_names, zero_division=0))
         if args.confusion_matrix:
-            cm = confusion_matrix(y_plain, y_plain_pred)
-            logger.info("\n" + format_cm(cm, class_names))
-            save_cm_plot(cm, class_names,
-                         title=f"Confusion Matrix — {target} / plain",
-                         out_path=os.path.join(report_dir, f"cm_{target}_plain.png"))
+            ev.confusion_matrix(f'{target}_plain', y_plain, y_plain_pred, save_plot=True)
 
-        # Adversarial
+        # Adversarial evaluation
         adv_tasks = global_adv_tasks or [
             (atk, os.path.join(adv_dir, target, f"{target}_{atk}_adv.csv"))
             for atk in (args.attack or [])
@@ -154,7 +164,6 @@ def main():
 
         for tag, adv_path in adv_tasks:
             if not os.path.exists(adv_path):
-                # Try fallback target (e.g. lstm) when tree model has no adv CSV
                 if args.fallback_target and args.fallback_target != target:
                     fb_path = os.path.join(adv_dir, args.fallback_target,
                                            f"{args.fallback_target}_{tag}_adv.csv")
@@ -171,70 +180,32 @@ def main():
             logger.info(f"[+] Adversarial [{tag}]: {adv_path}")
             X_adv, y_adv = load_features_csv(adv_path, label_col=LABEL_COL)
 
-            y_adv_pred = predict_safe(predictor, X_adv)
-            adv_acc    = float(accuracy_score(y_adv, y_adv_pred))
-            adv_f1     = float(f1_score(y_adv, y_adv_pred, average='macro', zero_division=0))
-            attack_sr  = asr(y_plain_pred, y_adv_pred, y_plain)
+            y_adv_pred = ev.predict_safe(model_wrapper, X_adv)
+            adv_metrics = ev.report(f'{target}-{tag}', y_adv, y_adv_pred)
+            attack_sr = ev.asr(y_plain_pred, y_adv_pred, y_plain)
+            logger.info(f"    ASR={attack_sr*100:.2f}%")
 
-            logger.info(f"    Adv Acc={adv_acc*100:.2f}%  F1={adv_f1*100:.2f}%  ASR={attack_sr*100:.2f}%")
             if args.per_class:
                 logger.info("\n" + classification_report(
                     y_adv, y_adv_pred, target_names=class_names, zero_division=0))
             if args.confusion_matrix:
-                cm = confusion_matrix(y_adv, y_adv_pred)
-                logger.info("\n" + format_cm(cm, class_names))
-                save_cm_plot(cm, class_names, title=f"Confusion Matrix — {target} / {tag}",
-                             out_path=os.path.join(report_dir, f"cm_{target}_{tag}.png"))
+                ev.confusion_matrix(f'{target}_{tag}', y_adv, y_adv_pred, save_plot=True)
 
             results.append({
                 'target': target, 'attack': tag,
-                'plain_acc': plain_acc, 'plain_f1': plain_f1,
-                'adv_acc': adv_acc, 'adv_f1': adv_f1, 'asr': attack_sr,
+                'plain_acc': plain_metrics['accuracy'], 'plain_f1': plain_metrics['f1'],
+                'adv_acc': adv_metrics['accuracy'], 'adv_f1': adv_metrics['f1'],
+                'asr': attack_sr,
             })
 
     if not results:
         logger.warning("[!] No results.")
         return
 
-    # ── Detailed table ────────────────────────────────────────────────────────
-    t1 = PrettyTable(['Target', 'Attack', 'Plain Acc', 'Plain F1',
-                      'Adv Acc', 'Adv F1', 'ASR'])
-    t1.align = 'r'
-    t1.align['Target'] = 'l'
-    t1.align['Attack'] = 'l'
-    for r in results:
-        t1.add_row([r['target'], r['attack'],
-                    f"{r['plain_acc']*100:.2f}%", f"{r['plain_f1']*100:.2f}%",
-                    f"{r['adv_acc']*100:.2f}%",   f"{r['adv_f1']*100:.2f}%",
-                    f"{r['asr']*100:.2f}%"])
-    logger.info("\n" + t1.get_string())
-
-    # ── Compact 2D table: rows=attacks, cols=targets ──────────────────────────
-    targets_order = list(dict.fromkeys(r['target'] for r in results))
-    attacks_order = list(dict.fromkeys(r['attack']  for r in results))
-
-    t2 = PrettyTable(['Attack'] + targets_order)
-    t2.align = 'r'
-    t2.align['Attack'] = 'l'
-
-    plain_row = ['original']
-    for t in targets_order:
-        v = next((r['plain_acc'] for r in results if r['target'] == t), float('nan'))
-        plain_row.append(f"{v*100:.2f}%" if v == v else 'nan')
-    t2.add_row(plain_row)
-
-    for atk in attacks_order:
-        row = [atk]
-        for t in targets_order:
-            m = next((r for r in results if r['target'] == t and r['attack'] == atk), None)
-            row.append(f"{m['adv_acc']*100:.2f}% (asr:{m['asr']*100:.2f}%)" if m else '—')
-        t2.add_row(row)
-
-    logger.info("\n" + t2.get_string())
-
+    logger.info("\n" + ev.results_table(results).get_string())
+    logger.info("\n" + ev.compact_table(results).get_string())
     if args.output_csv:
-        pd.DataFrame(results).to_csv(args.output_csv, index=False)
-        logger.info(f"[+] Saved: {args.output_csv}")
+        ev.save_csv(results, args.output_csv)
 
 
 if __name__ == '__main__':

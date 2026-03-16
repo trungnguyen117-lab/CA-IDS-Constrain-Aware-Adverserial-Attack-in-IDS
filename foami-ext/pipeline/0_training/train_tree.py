@@ -16,106 +16,28 @@ Usage:
     # Custom data / output paths
     python train_tree.py --model rf --train-csv /data/train.csv --models-dir /out/models
 """
-
 import os
 import sys
 import argparse
-
-import numpy as np
-import pandas as pd
-from sklearn.model_selection import train_test_split
-
-# ── Path bootstrap ─────────────────────────────────────────────────────────────
 _HERE  = os.path.dirname(os.path.realpath(__file__))
 _FOAMI = os.path.dirname(os.path.dirname(_HERE))   # foami+/
 sys.path.insert(0, _FOAMI)
-
 from utils.paths      import setup_paths, MODELS_DIR, TRAIN_CSV, TEST_CSV
 setup_paths()
-
 from utils.logging    import setup_logging, get_logger
-from utils.evaluation import report_metrics
-from utils.config     import load_training_config
-from utils.constants  import LABEL_COL, MODEL_FILENAMES
-from model.xgb     import XGBModel
-from model.catb    import CatBoostModel
-from model.rf      import RFModel
-
+from utils.constants  import GBT_TARGETS
+from utils.data       import DataManager
+from utils.training import ModelManager
 logger = get_logger(__name__)
-
-TREE_MODELS = ['xgb', 'cat', 'rf']
 _ALL_CHOICE = 'all'
-
-
-# ── Per-model trainers ────────────────────────────────────────────────────────
-
-def train_xgb(X_train, y_train, X_test, y_test, num_class, models_dir, device,
-              out_name=None):
-    """XGBoost — params from foami+/config/training/xgb.yaml."""
-    if out_name is None:
-        out_name = MODEL_FILENAMES['xgb']
-    logger.info("[XGB] Starting training ...")
-    # X_tr, X_val, y_tr, y_val = train_test_split(
-    #     X_train, y_train, test_size=0.1, random_state=42, stratify=y_train
-    # )
-    X_tr = X_train
-    y_tr = y_train
-    cfg = load_training_config('xgb')
-    cfg['device'] = 'cuda' if device.lower() in ('cuda', 'gpu') else 'cpu'
-    model = XGBModel(num_class=num_class, params=cfg)
-    model.fit(X_tr, y_tr)
-    logger.info("[XGB] Training complete")
-    report_metrics('XGB', y_test, model.predict(X_test))
-    model.save_model(os.path.join(models_dir, out_name))
-
-
-def train_cat(X_train, y_train, X_test, y_test, num_class, models_dir, device,
-              out_name=None):
-    """CatBoost — params from foami+/config/training/cat.yaml."""
-    if out_name is None:
-        out_name = MODEL_FILENAMES['cat']
-    logger.info("[CatBoost] Starting training ...")
-    # X_tr, X_val, y_tr, y_val = train_test_split(
-    #     X_train, y_train, test_size=0.1, random_state=42, stratify=y_train
-    # )
-    X_tr = X_train
-    y_tr = y_train
-    cfg = load_training_config('cat')
-    cfg['task_type']     = 'GPU' if device.lower() in ('cuda', 'gpu') else 'CPU'
-    cfg['classes_count'] = num_class   # inferred from data at runtime
-    model = CatBoostModel(num_class=num_class, params=cfg)
-    model.fit(X_tr, y_tr)
-    logger.info("[CatBoost] Training complete")
-    report_metrics('CatBoost', y_test, model.predict(X_test))
-    model.save_model(os.path.join(models_dir, out_name))
-
-
-def train_rf(X_train, y_train, X_test, y_test, num_class, models_dir,
-             out_name=None):
-    """RandomForest — params from foami+/config/training/rf.yaml."""
-    if out_name is None:
-        out_name = MODEL_FILENAMES['rf']
-    logger.info("[RF] Starting training ...")
-    X_tr = X_train
-    y_tr = y_train
-    cfg = load_training_config('rf')
-    random_state = cfg.pop('random_state', 0)
-    model = RFModel(num_class=num_class, params=cfg, random_state=random_state)
-    model.fit(X_tr, y_tr)
-    logger.info("[RF] Training complete")
-    report_metrics('RF', y_test, model.predict(X_test))
-    model.save_model(os.path.join(models_dir, out_name))
-
-
-# ── Main ──────────────────────────────────────────────────────────────────────
 
 def main():
     parser = argparse.ArgumentParser(
         description="Train tree-based models for SOICT25 IEC-104 dataset"
     )
     parser.add_argument('--model', '-m', nargs='+', required=True,
-                        choices=TREE_MODELS + [_ALL_CHOICE],
-                        help="Model(s) to train: xgb cat rf all")
+                        choices=GBT_TARGETS,
+                        help="Tree model(s) to train: xgb cat rf all")
     parser.add_argument('--train-csv', default=None,
                         help=f"Training CSV (default: {TRAIN_CSV})")
     parser.add_argument('--test-csv', default=None,
@@ -143,28 +65,14 @@ def main():
 
     logger.info(f"[+] Train: {train_csv}")
     logger.info(f"[+] Test : {test_csv}")
-    df_train = pd.read_csv(train_csv, low_memory=False)
-    df_test  = pd.read_csv(test_csv,  low_memory=False)
-
-    feat_cols = [c for c in df_train.columns if c != LABEL_COL]
-
-    X_train   = df_train[feat_cols].values.astype(np.float32)
-    y_train   = df_train[LABEL_COL].values.astype(np.int64)
-    X_test    = df_test[feat_cols].values.astype(np.float32)
-    y_test    = df_test[LABEL_COL].values.astype(np.int64)
-    num_class = int(len(np.unique(y_train)))
+    dm = DataManager(train_csv, test_csv)
+    X_train, y_train = dm.train_data
+    X_test, y_test = dm.test_data
+    num_class = dm.num_classes
 
     logger.info(f"[+] Train={X_train.shape}, Test={X_test.shape}, Classes={num_class}")
-
-    models = TREE_MODELS if _ALL_CHOICE in args.model else args.model
-    for m in models:
-        if m == 'xgb':
-            train_xgb(X_train, y_train, X_test, y_test, num_class, models_dir, args.device)
-        elif m == 'cat':
-            train_cat(X_train, y_train, X_test, y_test, num_class, models_dir, args.device)
-        elif m == 'rf':
-            train_rf(X_train, y_train, X_test, y_test, num_class, models_dir)
-
-
+    models = GBT_TARGETS if _ALL_CHOICE in args.model else args.model
+    mm = ModelManager(dm, models_dir, device=args.device)
+    mm.train_multiple(models) 
 if __name__ == '__main__':
     main()

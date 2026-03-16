@@ -32,6 +32,7 @@ class LSTMWrapper(AdversarialWrapper):
         if hasattr(self, 'scaler_mean') and self.scaler_mean is not None:
             preprocessing = (self.scaler_mean, self.scaler_scale)
 
+        defences = self._build_preprocessing_defences() or []
         return PyTorchClassifier(
             model=self.model,
             loss=nn.CrossEntropyLoss(),
@@ -39,6 +40,7 @@ class LSTMWrapper(AdversarialWrapper):
             nb_classes=self.num_classes,
             clip_values=self.clip_values,
             preprocessing=preprocessing,
+            preprocessing_defences=defences,
             device_type=device_type,
         )
 

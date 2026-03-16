@@ -3,6 +3,7 @@
 All wrappers return ART-compatible estimator objects ready for adversarial
 generation or evaluation.
 """
+import importlib
 import json
 import os
 import logging
@@ -12,11 +13,10 @@ import numpy as np
 import pandas as pd
 
 from .constants import (
-    SINGLE_TARGETS,
+    GBT_TARGETS,
     DEFAULT_ENSEMBLE_WEIGHTS, DEFAULT_MI_W_GBT_BASE, DEFAULT_MI_PARAMS,
     LABEL_COL, MODEL_FILENAMES,
 )
-
 logger = logging.getLogger(__name__)
 
 
@@ -28,65 +28,67 @@ def require_file(path: str) -> None:
         raise SystemExit(f"File not found: {path}")
 
 
-# ── Single-model wrapper loader ───────────────────────────────────────────────
+# ── ModelLoader class ─────────────────────────────────────────────────────────
 
-def _load_sklearn_wrapper(path: str, clip_values, num_classes: int, input_dim: int):
-    from art_classifier.sklearn_classifier import SkleanWrapper
-    model = joblib.load(path)
-    return SkleanWrapper(
-        model=model,
-        num_classes=num_classes,
-        input_shape=(input_dim,),
-        clip_values=clip_values,
-    )
+class ModelLoader:
+    """Registry-based model loader for ART-compatible wrappers.
+
+    Usage:
+        loader = ModelLoader(models_dir, clip_values, num_classes, input_dim, device)
+        wrapper = loader.load('lstm')
+        wrapper = loader.load('lstm', params={'gaussian_augmentation': True})
+        wrappers = loader.load_multiple(['cat', 'rf', 'lstm', 'resdnn'])
+    """
+
+    _REGISTRY = {
+        'xgb':    ('art_classifier.xgb_classifier',    'XGBWrapper'),
+        'cat':    ('art_classifier.catb_classifier',    'CatBoostWrapper'),
+        'rf':     ('art_classifier.sklearn_classifier', 'SkleanWrapper'),
+        'lstm':   ('art_classifier.lstm_classifier',    'LSTMWrapper'),
+        'resdnn': ('art_classifier.resdnn_classifier',  'ResDNNWrapper'),
+    }
+
+    def __init__(self, models_dir, clip_values, num_classes, input_dim, device):
+        self.models_dir = models_dir
+        self.clip_values = clip_values
+        self.num_classes = num_classes
+        self.input_dim = input_dim
+        self.device = device
+
+    def load(self, target, params=None):
+        """Load model wrapper by target name."""
+        if target not in self._REGISTRY:
+            raise ValueError(f"Unknown target: {target}")
+        module_path, class_name = self._REGISTRY[target]
+        mod = importlib.import_module(module_path)
+        wrapper_cls = getattr(mod, class_name)
+        p = os.path.join(self.models_dir, MODEL_FILENAMES[target])
+        require_file(p)
+        if target in GBT_TARGETS:
+            model = joblib.load(p)
+            return wrapper_cls(model=model, num_classes=self.num_classes,
+                               input_shape=(self.input_dim,),
+                               clip_values=self.clip_values,
+                               device=self.device, params=params)
+        wrapper = wrapper_cls.from_checkpoint(
+            p, clip_values=self.clip_values, device=self.device)
+        if params:
+            wrapper.set_params(**params)
+        return wrapper
+
+    def load_multiple(self, targets, params=None):
+        """Load multiple wrappers. Returns dict {target: wrapper}."""
+        return {t: self.load(t, params) for t in targets}
 
 
-def load_wrapper(target: str, models_dir: str, clip_values,
-                 num_classes: int, input_dim: int, device: str):
+# ── Backward-compatible free functions ────────────────────────────────────────
+
+def load_model_wrapper(target, models_dir, clip_values,
+                       num_classes, input_dim, device, params=None):
     """Load a single-model ART wrapper for *target*."""
-    if target == 'xgb':
-        from art_classifier.xgb_classifier import XGBWrapper
-        p = os.path.join(models_dir, MODEL_FILENAMES['xgb'])
-        require_file(p)
-        try:
-            model = joblib.load(p)
-            return XGBWrapper(model=model, num_classes=num_classes,
-                              input_shape=(input_dim,), clip_values=clip_values)
-        except Exception as e:
-            raise SystemExit(
-                f"XGB load failed: {e}. Try: uv pip install 'xgboost<2.0'"
-            ) from e
+    return ModelLoader(models_dir, clip_values, num_classes, input_dim, device).load(target, params)
 
-    if target == 'cat':
-        from art_classifier.catb_classifier import CatBoostWrapper
-        p = os.path.join(models_dir, MODEL_FILENAMES['cat'])
-        require_file(p)
-        try:
-            model = joblib.load(p)
-            return CatBoostWrapper(model=model, num_classes=num_classes,
-                                   input_shape=(input_dim,), clip_values=clip_values,
-                                   device=device)
-        except Exception:
-            return _load_sklearn_wrapper(p, clip_values, num_classes, input_dim)
-
-    if target == 'rf':
-        p = os.path.join(models_dir, MODEL_FILENAMES['rf'])
-        require_file(p)
-        return _load_sklearn_wrapper(p, clip_values, num_classes, input_dim)
-
-    if target == 'lstm':
-        from art_classifier.lstm_classifier import LSTMWrapper
-        p = os.path.join(models_dir, MODEL_FILENAMES['lstm'])
-        require_file(p)
-        return LSTMWrapper.from_checkpoint(p, clip_values=clip_values, device=device)
-
-    if target == 'resdnn':
-        from art_classifier.resdnn_classifier import ResDNNWrapper
-        p = os.path.join(models_dir, MODEL_FILENAMES['resdnn'])
-        require_file(p)
-        return ResDNNWrapper.from_checkpoint(p, clip_values=clip_values, device=device)
-
-    raise ValueError(f"Unknown target: {target}")
+load_wrapper = load_model_wrapper
 
 
 # ── CSV feature loaders ────────────────────────────────────────────────────────
@@ -154,58 +156,3 @@ def parse_ensemble_config(args) -> tuple:
             w_gbt_base = np.array(parsed['w_gbt_base'], dtype=np.float64)
 
     return ew, mi_cfg, w_gbt_base
-
-
-# ── Ensemble / MI predictor builder (used by evaluate) ───────────────────────
-
-class WrapperAdapter:
-    """Thin adapter so a wrapper's predict_proba looks like predict."""
-    def __init__(self, wrapper):
-        self._w = wrapper
-
-    def predict(self, X: np.ndarray) -> np.ndarray:
-        return self._w.predict_proba(X)
-
-
-def build_predictor(target: str, models_dir: str, clip_values,
-                    num_classes: int, input_dim: int, device: str,
-                    ew: dict = None, mi_cfg: dict = None,
-                    w_gbt_base: np.ndarray = None):
-    """Return a predictor (has .predict(X) → proba) for *target*."""
-    from art_classifier.ensemble_classifier import EnsembleEstimator
-    from art_classifier.mi_classifier import MIEstimator
-
-    ew         = ew         or DEFAULT_ENSEMBLE_WEIGHTS.copy()
-    mi_cfg     = mi_cfg     or DEFAULT_MI_PARAMS.copy()
-    w_gbt_base = w_gbt_base if w_gbt_base is not None else DEFAULT_MI_W_GBT_BASE.copy()
-
-    if target in SINGLE_TARGETS:
-        return WrapperAdapter(load_wrapper(target, models_dir, clip_values,
-                                          num_classes, input_dim, device))
-
-    if target == 'ensemble':
-        wrappers = {}
-        for t in SINGLE_TARGETS:
-            if ew.get(t, 0.0) > 0:
-                logger.info(f"  Loading {t} ...")
-                wrappers[t] = load_wrapper(t, models_dir, clip_values,
-                                           num_classes, input_dim, device)
-        return EnsembleEstimator(wrappers=wrappers, weights=ew,
-                                 num_classes=num_classes, clip_values=clip_values)
-
-    if target == 'mi':
-        logger.info("  Loading GBT (cat, rf) ...")
-        gbt = {
-            'cat': load_wrapper('cat', models_dir, clip_values, num_classes, input_dim, device),
-            'rf':  load_wrapper('rf',  models_dir, clip_values, num_classes, input_dim, device),
-        }
-        logger.info("  Loading DL (lstm, resdnn) ...")
-        dl = {
-            'lstm':   load_wrapper('lstm',   models_dir, clip_values, num_classes, input_dim, device),
-            'resdnn': load_wrapper('resdnn', models_dir, clip_values, num_classes, input_dim, device),
-        }
-        return MIEstimator(gbt_wrappers=gbt, dl_wrappers=dl,
-                           num_classes=num_classes, clip_values=clip_values,
-                           w_gbt_base=w_gbt_base, **mi_cfg)
-
-    raise ValueError(f"Unknown target: {target}")

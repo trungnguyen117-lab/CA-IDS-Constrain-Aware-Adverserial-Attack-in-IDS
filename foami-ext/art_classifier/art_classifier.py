@@ -1,8 +1,11 @@
 import abc
+import logging
 from typing import Any, Dict, Optional, Tuple
 
 import numpy as np
 import torch.nn as nn
+
+_logger = logging.getLogger(__name__)
 
 
 
@@ -40,37 +43,66 @@ class AdversarialWrapper(abc.ABC):
             self._estimator = self.build_estimator()
         return self._estimator
 
-    # Optional preprocessing defences (Feature Squeezing)
+    # Optional preprocessing defences (Feature Squeezing, Gaussian Augmentation)
     def _build_preprocessing_defences(self) -> Optional[list]:
         """Create preprocessing defences list based on params.
 
         Supported params:
+          Feature Squeezing:
           - feature_squeezing: bool (enable/disable)
           - fs_bit_depth: int (default 8)
           - fs_apply_fit: bool (default True)
           - fs_apply_predict: bool (default True)
+
+          Gaussian Augmentation:
+          - gaussian_augmentation: bool (enable/disable)
+          - ga_sigma: float (default 0.1)
+          - ga_apply_fit: bool (default True)
+          - ga_apply_predict: bool (default True)
         """
+        defences: list = []
+
+        # ── Feature Squeezing ──────────────────────────────────────────
         try:
-            enabled = bool(self.params.get("feature_squeezing", False) or ("fs_bit_depth" in self.params))
-            if not enabled:
-                return None
-            try:
-                from art.defences.preprocessor import FeatureSqueezing  # type: ignore
-            except Exception:
-                # ART not available or defence not present; skip silently
-                return None
-            bit_depth = int(self.params.get("fs_bit_depth", self.params.get("feature_squeezing_bit_depth", 8)))
-            apply_fit = bool(self.params.get("fs_apply_fit", True))
-            apply_predict = bool(self.params.get("fs_apply_predict", True))
-            fs = FeatureSqueezing(
-                clip_values=(0, 1),
-                bit_depth=bit_depth,
-                apply_fit=apply_fit,
-                apply_predict=apply_predict,
+            fs_enabled = bool(
+                self.params.get("feature_squeezing", False)
+                or ("fs_bit_depth" in self.params)
             )
-            return [fs]
+            if fs_enabled:
+                from art.defences.preprocessor import FeatureSqueezing  # type: ignore
+
+                bit_depth = int(self.params.get(
+                    "fs_bit_depth",
+                    self.params.get("feature_squeezing_bit_depth", 8),
+                ))
+                fs = FeatureSqueezing(
+                    clip_values=self.clip_values,
+                    bit_depth=bit_depth,
+                    apply_fit=bool(self.params.get("fs_apply_fit", True)),
+                    apply_predict=bool(self.params.get("fs_apply_predict", True)),
+                )
+                defences.append(fs)
         except Exception:
-            return None
+            pass
+
+        # ── Gaussian Augmentation ──────────────────────────────────────
+        try:
+            ga_enabled = bool(self.params.get("gaussian_augmentation", False))
+            if ga_enabled:
+                from art.defences.preprocessor import GaussianAugmentation  # type: ignore
+
+                ga = GaussianAugmentation(
+                    sigma=float(self.params.get("ga_sigma", 0.1)),
+                    augmentation=False,
+                    clip_values=self.clip_values,
+                    apply_fit=bool(self.params.get("ga_apply_fit", True)),
+                    apply_predict=bool(self.params.get("ga_apply_predict", True)),
+                )
+                defences.append(ga)
+        except Exception:
+            pass
+
+        return defences if defences else None
 
     # Basic API
     def predict_proba(self, X: np.ndarray) -> np.ndarray:
@@ -88,8 +120,7 @@ class AdversarialWrapper(abc.ABC):
         return exp / exp.sum(axis=1, keepdims=True)
 
     def predict(self, X: np.ndarray) -> np.ndarray:
-        proba = self.predict_proba(X)
-        return np.argmax(proba, axis=1)
+        return np.argmax(self.predict_proba(X), axis=1)
 
     def score(self, X: np.ndarray, y_true: np.ndarray) -> Dict[str, float]:
         y_pred = self.predict(X)

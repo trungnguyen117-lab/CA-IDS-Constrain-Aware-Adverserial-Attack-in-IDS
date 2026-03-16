@@ -48,8 +48,13 @@ class _ResDNN(nn.Module):
         self.block3 = _ResidualBlock(W, W // 2, p=0.20)
         self.head   = nn.Linear(W, n_classes)
 
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
-        return self.head(self.block3(self.block2(self.block1(self.stem(x)))))
+    def forward(self, x: torch.Tensor, return_features: bool = False) -> torch.Tensor:
+        x = x.to(self.stem[0].weight.dtype)
+        features = self.block3(self.block2(self.block1(self.stem(x))))  # [B, 512]
+        logits = self.head(features)
+        if return_features:
+            return logits, features
+        return logits
 
 
 # ── Training wrapper ──────────────────────────────────────────────────────────

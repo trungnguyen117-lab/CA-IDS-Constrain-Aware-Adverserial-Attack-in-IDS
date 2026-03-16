@@ -44,95 +44,11 @@ from utils.paths import setup_paths, AT_TRAIN_CSV, TRAIN_ORIG_CSV
 setup_paths()
 
 from utils.logging import setup_logging, get_logger
+from utils.data    import tvae_augment
 
 import pandas as pd
 
 logger = get_logger(__name__)
-
-
-# ── TVAE augmentation ──────────────────────────────────────────────────────────
-
-def tvae_augment(
-    df_train: pd.DataFrame,
-    label_col: str,
-    sample_max: int,
-    labels: list,
-    use_cuda: bool,
-) -> pd.DataFrame:
-    """Augment df_train with TVAE-generated synthetic samples.
-
-    For each label in `labels` whose count < sample_max, fits a
-    TVAESynthesizer on that class subset and samples the missing rows.
-
-    Parameters
-    ----------
-    df_train   : original training DataFrame (features + label_col)
-    label_col  : name of the label column
-    sample_max : target sample count per class
-    labels     : class values to augment (only those below sample_max)
-    use_cuda   : whether to use CUDA for TVAE training
-
-    Returns
-    -------
-    DataFrame with original rows + synthetic rows, duplicates removed.
-    """
-    try:
-        from sdv.single_table import TVAESynthesizer
-        from sdv.metadata import Metadata
-    except ImportError:
-        raise SystemExit(
-            "SDV not installed. Install with: pip install sdv"
-        )
-
-    synthetic_dfs = []
-
-    for label in labels:
-        df_label = df_train[df_train[label_col] == label]
-        current  = len(df_label)
-        needed   = sample_max - current
-
-        if needed <= 0:
-            logger.info(f"  Label {label}: {current} samples — no augmentation needed")
-            continue
-
-        logger.info(f"  Label {label}: {current} samples → generating {needed} synthetic")
-
-        metadata    = Metadata.detect_from_dataframe(
-            data=df_label, table_name=str(label)
-        )
-        synthesizer = TVAESynthesizer(
-            metadata,
-            embedding_dim=64,
-            compress_dims=[128, 64],
-            decompress_dims=[64, 128],
-            l2scale=1e-4,
-            loss_factor=2.0,
-            batch_size=512,
-            epochs=256,
-            cuda=use_cuda,
-        )
-        synthesizer.fit(df_label)
-        df_synth             = synthesizer.sample(num_rows=needed)
-        df_synth[label_col]  = label   # ensure label column is correct
-        synthetic_dfs.append(df_synth)
-
-    if not synthetic_dfs:
-        logger.info("[+] All classes already at or above sample_max — returning original data")
-        return df_train.copy()
-
-    augmented = pd.concat([df_train] + synthetic_dfs, axis=0, ignore_index=True)
-
-    # Remove duplicates (feature columns only, keep original)
-    before     = len(augmented)
-    feat_cols  = [c for c in augmented.columns if c != label_col]
-    dup_mask   = augmented[feat_cols].duplicated(keep='first')
-    augmented  = augmented[~dup_mask].reset_index(drop=True)
-    removed    = before - len(augmented)
-
-    if removed:
-        logger.info(f"[+] Removed {removed} duplicate rows")
-
-    return augmented
 
 
 # ── Main ───────────────────────────────────────────────────────────────────────

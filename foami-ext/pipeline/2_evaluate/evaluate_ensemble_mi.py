@@ -29,6 +29,7 @@ Usage:
 
 import os
 import sys
+import json
 import argparse
 
 # ── macOS / PyTorch compatibility (must be set before torch is imported) ────────
@@ -41,19 +42,18 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 import numpy as np
 import pandas as pd
 from sklearn.metrics import accuracy_score, f1_score
-from prettytable import PrettyTable
 
 # ── Path bootstrap ──────────────────────────────────────────────────────────────
 _HERE  = os.path.dirname(os.path.realpath(__file__))
 _FOAMI = os.path.dirname(os.path.dirname(_HERE))
 sys.path.insert(0, _FOAMI)
 
-from utils.paths import setup_paths, MODELS_DIR, ADV_EVAL_DIR, TEST_CSV
+from utils.paths import setup_paths, MODELS_DIR, ADV_EVAL_DIR, TEST_CSV, REPORT_DIR
 setup_paths()
 
 from utils.logging   import setup_logging, get_logger
-from utils.loaders   import load_wrapper, load_features_csv, resolve_adv_path, parse_ensemble_config
-from utils.evaluation import asr
+from utils.loaders   import ModelLoader, load_features_csv, resolve_adv_path, parse_ensemble_config
+from utils.evaluation import Evaluator
 from utils.ensemble  import (
     ENSEMBLE_COMPONENTS, MI_GBT, MI_DL,
     weighted_combine, mi_combine,
@@ -61,22 +61,6 @@ from utils.ensemble  import (
 from utils.constants import ALL_ATTACKS
 
 logger = get_logger(__name__)
-
-
-# ── Load component wrappers ─────────────────────────────────────────────────────
-
-def _load_components(models_dir: str, clip_values: tuple,
-                     num_classes: int, input_dim: int,
-                     device: str, components: list) -> dict:
-    wrappers = {}
-    for t in components:
-        try:
-            wrappers[t] = load_wrapper(t, models_dir, clip_values,
-                                       num_classes, input_dim, device)
-            logger.info(f"  Loaded: {t}")
-        except SystemExit as e:
-            logger.warning(f"  [!] Cannot load {t}: {e}")
-    return wrappers
 
 
 # ── Per-attack evaluation ───────────────────────────────────────────────────────
@@ -163,7 +147,7 @@ def evaluate_attack(
     y_adv   = adv_data[next(iter(adv_data))][1]   # labels (same src data for all)
     adv_acc = float(accuracy_score(y_adv, adv_preds))
     adv_f1  = float(f1_score(y_adv, adv_preds, average='macro', zero_division=0))
-    asr_val = asr(plain_preds, adv_preds, y_plain)
+    asr_val = Evaluator.asr(plain_preds, adv_preds, y_plain)
 
     logger.info(f"  [{attack}] Adv Acc={adv_acc*100:.2f}%  "
                 f"Macro-F1={adv_f1*100:.2f}%  ASR={asr_val*100:.2f}%")
@@ -173,6 +157,8 @@ def evaluate_attack(
         'adv_acc': adv_acc,
         'adv_f1':  adv_f1,
         'asr':     asr_val,
+        'y_adv':   y_adv,
+        'adv_preds': adv_preds,
     }
 
 
@@ -201,6 +187,13 @@ def main():
                         choices=['ensemble', 'mi'],
                         help="Which targets to evaluate (default: both)")
     parser.add_argument('--output-csv', default=None)
+    parser.add_argument('--confusion-matrix', '--cm', action='store_true',
+                        help="Save confusion matrix plots for plain and adversarial predictions")
+    parser.add_argument('--report-dir', default=None,
+                        help="Directory to save CM plots (default: <foami+>/report)")
+    parser.add_argument('--defense-params', type=str, default=None,
+                        help="JSON dict of preprocessing defence params, e.g. "
+                             "'{\"gaussian_augmentation\":true,\"ga_sigma\":0.1}'")
     parser.add_argument('--log-level', default='INFO',
                         choices=['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'])
     args = parser.parse_args()
@@ -223,15 +216,26 @@ def main():
     logger.info(f"[+] Shape={X_plain.shape}, classes={num_classes}")
 
     # ── Component wrappers for ensemble and MI ────────────────────────────────
+    defense_params = json.loads(args.defense_params) if args.defense_params else None
+    if defense_params:
+        logger.info(f"[+] Defence params: {defense_params}")
+
     logger.info("[+] Loading component models ...")
     all_components = sorted(set(ENSEMBLE_COMPONENTS + MI_GBT + MI_DL))
-    wrappers = _load_components(models_dir, clip_values, num_classes,
-                                input_dim, args.device, all_components)
+    loader = ModelLoader(models_dir, clip_values, num_classes, input_dim, args.device)
+    wrappers = loader.load_multiple(all_components, params=defense_params)
+    for t in all_components:
+        logger.info(f"  Loaded: {t}")
 
     ens_wrappers = {k: wrappers[k] for k in ENSEMBLE_COMPONENTS if k in wrappers}
     mi_gbt       = {k: wrappers[k] for k in MI_GBT if k in wrappers}
     mi_dl        = {k: wrappers[k] for k in MI_DL  if k in wrappers}
     mi_wrappers  = {**mi_gbt, **mi_dl}
+
+    # ── CM setup ────────────────────────────────────────────────────────────
+    report_dir = args.report_dir or REPORT_DIR
+    class_names = [str(i) for i in range(num_classes)] if args.confusion_matrix else None
+    ev = Evaluator(class_names=class_names, report_dir=report_dir) if args.confusion_matrix else None
 
     all_results = {}
 
@@ -268,6 +272,9 @@ def main():
         plain_f1  = float(f1_score(y_plain, plain_preds, average='macro', zero_division=0))
         logger.info(f"  Plain Acc={plain_acc*100:.2f}%  Macro-F1={plain_f1*100:.2f}%")
 
+        if ev:
+            ev.confusion_matrix(f'{mode}_plain', y_plain, plain_preds, save_plot=True)
+
         # ── Per-attack evaluation ─────────────────────────────────────────────
         results = []
         for atk in args.attack:
@@ -286,6 +293,13 @@ def main():
                 mode=mode,
             )
             if res is not None:
+                if ev:
+                    ev.confusion_matrix(
+                        f'{mode}_{atk}', res['y_adv'], res['adv_preds'],
+                        save_plot=True,
+                    )
+                res.pop('y_adv', None)
+                res.pop('adv_preds', None)
                 res['plain_acc'] = plain_acc
                 res['plain_f1']  = plain_f1
                 results.append(res)
@@ -294,27 +308,15 @@ def main():
 
         # ── Table ─────────────────────────────────────────────────────────────
         if results:
-            tbl = PrettyTable(['Attack', 'Plain Acc', 'Plain F1',
-                               'Adv Acc', 'Adv F1', 'ASR'])
-            tbl.align = 'r'
-            tbl.align['Attack'] = 'l'
-            tbl.add_row(['original',
-                         f"{plain_acc*100:.2f}%", f"{plain_f1*100:.2f}%",
-                         '—', '—', '—'])
-            for r in results:
-                tbl.add_row([r['attack'],
-                             f"{r['plain_acc']*100:.2f}%", f"{r['plain_f1']*100:.2f}%",
-                             f"{r['adv_acc']*100:.2f}%",   f"{r['adv_f1']*100:.2f}%",
-                             f"{r['asr']*100:.2f}%"])
-            logger.info(f"\n[{mode.upper()}]\n" + tbl.get_string())
+            tagged = [{'target': mode, **r} for r in results]
+            logger.info(f"\n[{mode.upper()}]\n" + Evaluator.results_table(tagged).get_string())
 
     # ── Save CSV ──────────────────────────────────────────────────────────────
     if args.output_csv:
         rows = [{'target': mode, **r}
                 for mode, rs in all_results.items() for r in rs]
         if rows:
-            pd.DataFrame(rows).to_csv(args.output_csv, index=False)
-            logger.info(f"[+] Saved → {args.output_csv}")
+            Evaluator.save_csv(rows, args.output_csv)
 
 
 if __name__ == '__main__':
