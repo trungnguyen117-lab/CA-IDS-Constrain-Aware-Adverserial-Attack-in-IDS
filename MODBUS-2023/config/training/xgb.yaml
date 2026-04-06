@@ -1,0 +1,7 @@
+# XGBoost training parameters (from MODBUS notebook 4)
+
+max_depth: 15
+n_estimators: 5000
+learning_rate: 0.25
+eval_metric: [mlogloss, merror]
+early_stopping_rounds: 50

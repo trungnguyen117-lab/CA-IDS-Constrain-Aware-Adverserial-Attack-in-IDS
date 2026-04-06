@@ -1,0 +1,9 @@
+# RandomForest training parameters (from MODBUS notebook 4)
+
+n_estimators: 850
+max_leaf_nodes: 15000
+criterion: entropy
+class_weight: balanced
+n_jobs: -1
+random_state: 0
+bootstrap: true

@@ -1,0 +1,23 @@
+# LightGBM training hyperparameters (IEC-104)
+# Source: IEC-104/training/training_baselin_tvae.ipynb
+# Early stopping at iteration 63 (best val multi_logloss)
+
+boosting_type: gbdt
+objective: multiclass
+metric: multi_logloss
+
+learning_rate: 0.13
+n_estimators: 5000
+num_leaves: 192
+max_depth: -1
+
+min_child_samples: 48
+reg_alpha: 0.15
+reg_lambda: 0.8
+feature_fraction: 0.75
+bagging_fraction: 0.85
+bagging_freq: 1
+
+early_stopping_rounds: 30
+random_state: 42
+n_jobs: -1

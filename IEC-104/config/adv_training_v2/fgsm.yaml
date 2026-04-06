@@ -1,0 +1,7 @@
+# FGSM AT v2 — stronger than eval (eps 0.1→0.15, eps_step 0.01→0.015)
+# White-box gradient attack — requires differentiable model (lstm, resdnn only)
+
+eps: 0.15
+eps_step: 0.015
+batch_size: 64
+targeted: false

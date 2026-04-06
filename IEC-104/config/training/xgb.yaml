@@ -1,0 +1,11 @@
+# XGBoost training hyperparameters (IEC-104)
+# Source: IEC-104/training/training_baselin_tvae.ipynb
+
+tree_method: hist
+max_depth: 15
+n_estimators: 5000
+learning_rate: 0.3
+eval_metric: mlogloss
+objective: multi:softmax
+booster: gbtree
+random_state: 42

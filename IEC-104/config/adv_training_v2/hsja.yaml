@@ -1,0 +1,11 @@
+# HSJA AT v2 — stronger than eval (max_iter 2→3, max_eval 100→150, init_eval 10→15)
+# Black-box decision-boundary attack — compatible with all targets
+
+batch_size: 64
+targeted: false
+norm: 2
+max_iter: 3
+max_eval: 150
+init_eval: 15
+init_size: 25
+verbose: true

@@ -1,0 +1,11 @@
+# HopSkipJump Attack (HSJA) parameters
+# Black-box decision-boundary attack — compatible with all targets
+
+batch_size: 64
+targeted: false
+norm: 2
+max_iter: 2
+max_eval: 100
+init_eval: 10
+init_size: 25
+verbose: true

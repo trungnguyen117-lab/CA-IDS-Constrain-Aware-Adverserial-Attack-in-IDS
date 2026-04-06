@@ -1,0 +1,35 @@
+# MODBUS-2023 Project Configuration
+# All paths are relative to MODBUS-2023/ root directory
+
+paths:
+  # Datasets
+  train: datasets/train_shap_58_600.csv
+  test: datasets/test_shap_58_600.csv
+  train_tvae: datasets/modbus_train_merged_1400_TVAE.csv
+
+  # Model directories
+  models: training/models
+  models_at: defense/models
+
+  # Adversarial samples
+  adv_eval: adv_samples/adv_eval
+  adv_training: adv_samples/adv_training
+
+  # Config
+  attack_config: config/attacks
+  training_config: config/training
+
+  # Reports
+  report: report
+
+# Model file naming convention:
+#   baseline:  framework_{model}_TabDiff.{ext}
+#   AT:        framework_{model}_TabDiff_at.{ext}
+#   ext: .pkl (tree), .pth (DL/FTT)
+models:
+  tree: [xgb, cat, rf, et, lgbm]
+  dl: [ftt]
+
+# Feature set: 58 SHAP-selected features
+n_features: 58
+n_classes: 9

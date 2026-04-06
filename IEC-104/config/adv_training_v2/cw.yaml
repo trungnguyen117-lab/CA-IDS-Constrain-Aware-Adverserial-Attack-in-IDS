@@ -1,0 +1,12 @@
+# C&W AT v2 — stronger than eval (max_iter 30→50, binary_search 3→5)
+# White-box optimization attack — requires differentiable model (lstm, resdnn only)
+
+confidence: 0.0
+learning_rate: 0.01
+binary_search_steps: 5
+max_iter: 50
+initial_const: 0.01
+max_halving: 5
+max_doubling: 5
+batch_size: 64
+verbose: false

@@ -1,0 +1,29 @@
+# ResDNN training hyperparameters (IEC-104 defense/exp)
+# Source: IEC-104/script/defenses/exp/defense_ResDNN.ipynb
+# Architecture: stem(→512) → ResBlock×3(512,256) → head
+# Note: `input_dim`, `num_classes`, and `device` are set at runtime
+
+# ── Optimiser ──
+optimizer: AdamW
+lr: 0.001
+weight_decay: 0.0002
+
+# ── Training schedule ──
+batch_size: 1024
+max_epochs: 200
+warmup_epochs: 8
+patience: 20
+grad_clip: 3.0
+
+# ── Loss ──
+loss: FocalCE
+focal_gamma: 1.7
+label_smoothing: 0.05
+cb_beta: 0.999
+
+# ── LR scheduler ──
+scheduler: cosine_with_warmup
+
+# ── Validation ──
+val_size: 0.15
+random_seed: 42

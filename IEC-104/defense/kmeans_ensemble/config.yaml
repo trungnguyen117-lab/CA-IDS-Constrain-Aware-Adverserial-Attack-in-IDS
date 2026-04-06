@@ -1,0 +1,19 @@
+# KMeans-Adaptive Ensemble v3: Prediction-Cluster Inconsistency
+#
+# Key idea: adversarial samples get predicted as wrong class but their
+# features still cluster with the original class → inconsistency detected
+
+# Number of KMeans clusters (3x n_classes for sub-class structure)
+n_clusters: 36
+
+# Percentile of training distances for distance component
+threshold_pct: 50
+
+# Anomaly penalty: trust = confidence * (1 - gamma * inconsistency_score)
+gamma: 0.8
+
+# Agreement floor: final_w *= beta + (1-beta)*agreement
+beta: 0.5
+
+# Sweep values
+gamma_sweep: [0.0, 0.25, 0.5, 0.75, 1.0]

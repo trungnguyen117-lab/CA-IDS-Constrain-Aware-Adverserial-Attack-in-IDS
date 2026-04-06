@@ -1,0 +1,7 @@
+# JSMA (Jacobian-based Saliency Map Attack) parameters
+# White-box attack — requires differentiable model (lstm, resdnn only)
+
+theta: 0.02
+gamma: 0.05
+batch_size: 64
+verbose: true

@@ -1,0 +1,7 @@
+# DeepFool AT v2 — stronger than eval (max_iter 100→150, nb_grads 10→12)
+# White-box iterative attack — requires differentiable model (lstm, resdnn only)
+
+max_iter: 150
+batch_size: 64
+nb_grads: 12
+epsilon: 1.0e-6

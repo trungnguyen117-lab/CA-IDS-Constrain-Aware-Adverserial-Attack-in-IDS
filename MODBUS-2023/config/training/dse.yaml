@@ -1,0 +1,27 @@
+# Deep Similarity Encoder (DSE) training parameters
+# Adapted from Tiki-Taka (Zhang et al., ToN 2022) for tabular data
+
+# Architecture
+encoder_type: "1dcnn" # "mlp" or "1dcnn"
+embedding_dim: 3 # Output embedding dimensionality
+hidden_dims: [128, 64, 32] # Hidden layer sizes (MLP encoder)
+
+# 1D CNN params (used when encoder_type == "1dcnn")
+cnn_channels: [32, 64, 32]
+cnn_kernel_size: 3
+
+# Contrastive training
+margin: 0.5 # Contrastive loss margin
+noise_scale: 0.15 # Gaussian noise scale for similar pairs
+lr: 0.001
+weight_decay: 0.0001
+batch_size: 256
+max_epochs: 100
+patience: 20
+
+# Detection simulation
+buffer_size: 500 # Per-IP query buffer size
+k_neighbors: 200 # k for k-NN distance
+detection_threshold: 0.01 # Calibrated: det=100%, fpr=0% (attack~0.0002, normal~0.16)
+n_queries: 300 # Synthetic queries per attack attempt
+probe_eps: 0.01 # BB attack perturbation scale for query simulation

@@ -1,0 +1,10 @@
+# CatBoost training parameters (from MODBUS notebook 4)
+
+depth: 5
+iterations: 3000
+learning_rate: 0.2
+loss_function: MultiClass
+eval_metric: MultiClass
+auto_class_weights: Balanced
+early_stopping_rounds: 50
+verbose: False
