@@ -44,4 +44,5 @@ MODBUS-2023/datasets/backup/
 *.png
 *.xlsx
 *.bak
+*.joblib
 notebooks/
