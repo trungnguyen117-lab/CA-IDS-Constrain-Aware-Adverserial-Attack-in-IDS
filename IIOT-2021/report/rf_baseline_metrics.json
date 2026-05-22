@@ -1,0 +1,69 @@
+{
+  "cfg": {
+    "n_estimators": 850,
+    "max_leaf_nodes": 15000,
+    "n_jobs": -1,
+    "bootstrap": true,
+    "criterion": "entropy",
+    "class_weight": "balanced",
+    "random_state": 0
+  },
+  "metrics": {
+    "acc": 99.995,
+    "macro_f1": 97.25779258914942,
+    "macro_tpr": 95.72859025032938,
+    "macro_fpr": 0.011181512781130309,
+    "confusion_matrix": [
+      [
+        15,
+        1,
+        0,
+        0,
+        2
+      ],
+      [
+        0,
+        21,
+        0,
+        0,
+        1
+      ],
+      [
+        0,
+        0,
+        6555,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        689,
+        1
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        92715
+      ]
+    ]
+  },
+  "labels": [
+    0,
+    1,
+    2,
+    3,
+    4
+  ],
+  "label_names": [
+    "Backdoor",
+    "CommInj",
+    "DoS",
+    "Reconn",
+    "normal"
+  ],
+  "model_path": "/Users/trungnguye2n.dev/foami-plus/IIOT-2021/training/models/rf_baseline.pkl"
+}

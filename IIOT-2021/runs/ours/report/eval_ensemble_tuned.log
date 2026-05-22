@@ -1,0 +1,241 @@
+16:24:12 [INFO] src.defense.magnet: Det I thr=0.003439 drop=85/17000
+16:24:12 [INFO] src.defense.magnet: Det II thr=0.029878 drop=85/17000
+16:24:12 [INFO] src.utils.loaders: Loading cat (baseline): /Users/trungnguye2n.dev/Downloads/AIDER/IIOT-2021/training/models/standard_cat.pkl
+16:24:13 [INFO] src.utils.loaders: Loading rf (baseline): /Users/trungnguye2n.dev/Downloads/AIDER/IIOT-2021/training/models/standard_rf.pkl
+16:24:13 [INFO] src.utils.loaders: Loading xgb (baseline): /Users/trungnguye2n.dev/Downloads/AIDER/IIOT-2021/training/models/standard_xgb.pkl
+16:24:13 [INFO] src.utils.loaders: Loading et (baseline): /Users/trungnguye2n.dev/Downloads/AIDER/IIOT-2021/training/models/standard_et.pkl
+16:24:13 [INFO] src.utils.loaders: Loading lgbm (baseline): /Users/trungnguye2n.dev/Downloads/AIDER/IIOT-2021/training/models/standard_lgbm.pkl
+16:24:13 [INFO] src.utils.loaders: Loading mlp (baseline): /Users/trungnguye2n.dev/Downloads/AIDER/IIOT-2021/training/models/standard_mlp.pth
+16:24:13 [INFO] art.estimators.classification.pytorch: Inferred 2 hidden layers on PyTorch classifier.
+16:24:13 [INFO] src.utils.evaluation: STATIC ENS (baseline) clean  Acc= 98.79%  F1= 97.40%  TPR= 97.82%  FPR=  0.32%
+16:24:13 [INFO] src.utils.evaluation: STATIC ENS (baseline) cw   Acc= 97.40%  F1= 93.18%  TPR= 91.94%  FPR=  0.73%
+16:24:13 [INFO] src.pipeline.ensemble_cli:                            ASR=  1.46%
+16:24:13 [INFO] src.utils.evaluation: STATIC ENS (baseline) deepfool  Acc= 32.75%  F1= 33.41%  TPR= 45.41%  FPR= 19.22%
+16:24:13 [INFO] src.pipeline.ensemble_cli:                            ASR= 67.87%
+16:24:14 [INFO] src.utils.evaluation: STATIC ENS (baseline) fgsm  Acc= 73.88%  F1= 79.07%  TPR= 78.71%  FPR=  7.65%
+16:24:14 [INFO] src.pipeline.ensemble_cli:                            ASR= 26.06%
+16:24:14 [INFO] src.utils.evaluation: STATIC ENS (baseline) hsja  Acc=  2.72%  F1=  6.58%  TPR= 12.41%  FPR= 28.50%
+16:24:14 [INFO] src.pipeline.ensemble_cli:                            ASR= 98.40%
+16:24:14 [INFO] src.utils.evaluation: STATIC ENS (baseline) jsma  Acc= 98.64%  F1= 96.11%  TPR= 96.44%  FPR=  0.35%
+16:24:14 [INFO] src.pipeline.ensemble_cli:                            ASR=  0.15%
+16:24:14 [INFO] src.utils.evaluation: STATIC ENS (baseline) pgd  Acc= 72.79%  F1= 77.14%  TPR= 77.31%  FPR=  8.02%
+16:24:14 [INFO] src.pipeline.ensemble_cli:                            ASR= 27.35%
+16:24:14 [INFO] src.utils.evaluation: STATIC ENS (baseline) zoo  Acc= 98.62%  F1= 96.42%  TPR= 96.96%  FPR=  0.36%
+16:24:14 [INFO] src.pipeline.ensemble_cli:                            ASR=  0.24%
+16:24:14 [INFO] src.utils.loaders: Loading cat (baseline): /Users/trungnguye2n.dev/Downloads/AIDER/IIOT-2021/training/models/standard_cat.pkl
+16:24:14 [INFO] src.utils.loaders: Loading rf (baseline): /Users/trungnguye2n.dev/Downloads/AIDER/IIOT-2021/training/models/standard_rf.pkl
+16:24:14 [INFO] src.utils.loaders: Loading xgb (baseline): /Users/trungnguye2n.dev/Downloads/AIDER/IIOT-2021/training/models/standard_xgb.pkl
+16:24:14 [INFO] src.utils.loaders: Loading et (baseline): /Users/trungnguye2n.dev/Downloads/AIDER/IIOT-2021/training/models/standard_et.pkl
+16:24:14 [INFO] src.utils.loaders: Loading lgbm (baseline): /Users/trungnguye2n.dev/Downloads/AIDER/IIOT-2021/training/models/standard_lgbm.pkl
+16:24:14 [INFO] src.utils.loaders: Loading mlp (baseline): /Users/trungnguye2n.dev/Downloads/AIDER/IIOT-2021/training/models/standard_mlp.pth
+16:24:14 [INFO] art.estimators.classification.pytorch: Inferred 2 hidden layers on PyTorch classifier.
+16:24:14 [INFO] src.utils.evaluation: MI ENS (baseline) clean    Acc= 98.69%  F1= 96.66%  TPR= 97.04%  FPR=  0.34%
+16:24:14 [INFO] src.utils.evaluation: MI ENS (baseline) cw       Acc= 96.84%  F1= 92.14%  TPR= 91.39%  FPR=  0.87%
+16:24:14 [INFO] src.pipeline.ensemble_cli:                            ASR=  1.98%
+16:24:15 [INFO] src.utils.evaluation: MI ENS (baseline) deepfool  Acc=  2.07%  F1=  7.24%  TPR=  6.25%  FPR= 26.85%
+16:24:15 [INFO] src.pipeline.ensemble_cli:                            ASR= 98.95%
+16:24:15 [INFO] src.utils.evaluation: MI ENS (baseline) fgsm     Acc= 79.37%  F1= 78.61%  TPR= 78.60%  FPR=  6.21%
+16:24:15 [INFO] src.pipeline.ensemble_cli:                            ASR= 20.39%
+16:24:15 [INFO] src.utils.evaluation: MI ENS (baseline) hsja     Acc=  3.99%  F1= 19.11%  TPR= 28.99%  FPR= 27.94%
+16:24:15 [INFO] src.pipeline.ensemble_cli:                            ASR= 96.90%
+16:24:15 [INFO] src.utils.evaluation: MI ENS (baseline) jsma     Acc= 98.54%  F1= 95.09%  TPR= 95.63%  FPR=  0.37%
+16:24:15 [INFO] src.pipeline.ensemble_cli:                            ASR=  0.17%
+16:24:15 [INFO] src.utils.evaluation: MI ENS (baseline) pgd      Acc= 78.16%  F1= 77.21%  TPR= 78.07%  FPR=  6.58%
+16:24:15 [INFO] src.pipeline.ensemble_cli:                            ASR= 21.78%
+16:24:15 [INFO] src.utils.evaluation: MI ENS (baseline) zoo      Acc= 98.52%  F1= 95.86%  TPR= 96.35%  FPR=  0.39%
+16:24:15 [INFO] src.pipeline.ensemble_cli:                            ASR=  0.33%
+16:24:15 [INFO] src.utils.loaders: Loading cat (baseline): /Users/trungnguye2n.dev/Downloads/AIDER/IIOT-2021/training/models/standard_cat.pkl
+16:24:15 [INFO] src.utils.loaders: Loading rf (baseline): /Users/trungnguye2n.dev/Downloads/AIDER/IIOT-2021/training/models/standard_rf.pkl
+16:24:15 [INFO] src.utils.loaders: Loading xgb (baseline): /Users/trungnguye2n.dev/Downloads/AIDER/IIOT-2021/training/models/standard_xgb.pkl
+16:24:15 [INFO] src.utils.loaders: Loading et (baseline): /Users/trungnguye2n.dev/Downloads/AIDER/IIOT-2021/training/models/standard_et.pkl
+16:24:15 [INFO] src.utils.loaders: Loading lgbm (baseline): /Users/trungnguye2n.dev/Downloads/AIDER/IIOT-2021/training/models/standard_lgbm.pkl
+16:24:15 [INFO] src.utils.loaders: Loading mlp (baseline): /Users/trungnguye2n.dev/Downloads/AIDER/IIOT-2021/training/models/standard_mlp.pth
+16:24:15 [INFO] art.estimators.classification.pytorch: Inferred 2 hidden layers on PyTorch classifier.
+16:24:15 [INFO] src.utils.evaluation: MI2 ENS (baseline) clean   Acc= 98.79%  F1= 97.40%  TPR= 97.82%  FPR=  0.32%
+16:24:16 [INFO] src.utils.evaluation: MI2 ENS (baseline) cw      Acc= 97.35%  F1= 92.80%  TPR= 91.55%  FPR=  0.74%
+16:24:16 [INFO] src.pipeline.ensemble_cli:                            ASR=  1.51%
+16:24:16 [INFO] src.utils.evaluation: MI2 ENS (baseline) deepfool  Acc= 32.51%  F1= 33.33%  TPR= 45.09%  FPR= 19.40%
+16:24:16 [INFO] src.pipeline.ensemble_cli:                            ASR= 68.12%
+16:24:16 [INFO] src.utils.evaluation: MI2 ENS (baseline) fgsm    Acc= 73.84%  F1= 79.10%  TPR= 78.48%  FPR=  7.67%
+16:24:16 [INFO] src.pipeline.ensemble_cli:                            ASR= 26.10%
+16:24:16 [INFO] src.utils.evaluation: MI2 ENS (baseline) hsja    Acc=  2.74%  F1=  6.75%  TPR= 12.19%  FPR= 28.44%
+16:24:16 [INFO] src.pipeline.ensemble_cli:                            ASR= 98.40%
+16:24:16 [INFO] src.utils.evaluation: MI2 ENS (baseline) jsma    Acc= 98.64%  F1= 96.01%  TPR= 96.26%  FPR=  0.35%
+16:24:16 [INFO] src.pipeline.ensemble_cli:                            ASR=  0.17%
+16:24:16 [INFO] src.utils.evaluation: MI2 ENS (baseline) pgd     Acc= 72.81%  F1= 77.19%  TPR= 77.11%  FPR=  8.02%
+16:24:16 [INFO] src.pipeline.ensemble_cli:                            ASR= 27.34%
+16:24:16 [INFO] src.utils.evaluation: MI2 ENS (baseline) zoo     Acc= 98.56%  F1= 96.22%  TPR= 96.88%  FPR=  0.38%
+16:24:16 [INFO] src.pipeline.ensemble_cli:                            ASR=  0.31%
+16:24:16 [INFO] src.utils.loaders: Loading cat (AT): /Users/trungnguye2n.dev/Downloads/AIDER/IIOT-2021/defense/models/cat_at.pkl
+16:24:16 [INFO] src.utils.loaders: Loading rf (AT): /Users/trungnguye2n.dev/Downloads/AIDER/IIOT-2021/defense/models/rf_at.pkl
+16:24:16 [INFO] src.utils.loaders: Loading xgb (AT): /Users/trungnguye2n.dev/Downloads/AIDER/IIOT-2021/defense/models/xgb_at.pkl
+16:24:16 [INFO] src.utils.loaders: Loading et (AT): /Users/trungnguye2n.dev/Downloads/AIDER/IIOT-2021/defense/models/et_at.pkl
+16:24:17 [INFO] src.utils.loaders: Loading lgbm (AT): /Users/trungnguye2n.dev/Downloads/AIDER/IIOT-2021/defense/models/lgbm_at.pkl
+16:24:17 [INFO] src.utils.loaders: Loading mlp (AT): /Users/trungnguye2n.dev/Downloads/AIDER/IIOT-2021/defense/models/mlp_at.pth
+16:24:17 [INFO] art.estimators.classification.pytorch: Inferred 2 hidden layers on PyTorch classifier.
+16:24:17 [INFO] src.utils.evaluation: STATIC ENS (AT) clean      Acc= 98.74%  F1= 97.23%  TPR= 96.89%  FPR=  0.34%
+16:24:17 [INFO] src.utils.evaluation: STATIC ENS (AT) cw         Acc= 96.87%  F1= 93.64%  TPR= 92.60%  FPR=  0.89%
+16:24:17 [INFO] src.pipeline.ensemble_cli:                            ASR=  2.00%
+16:24:17 [INFO] src.utils.evaluation: STATIC ENS (AT) deepfool   Acc= 97.84%  F1= 92.65%  TPR= 90.00%  FPR=  0.60%
+16:24:17 [INFO] src.pipeline.ensemble_cli:                            ASR=  0.95%
+16:24:17 [INFO] src.utils.evaluation: STATIC ENS (AT) fgsm       Acc= 98.49%  F1= 95.29%  TPR= 95.09%  FPR=  0.40%
+16:24:17 [INFO] src.pipeline.ensemble_cli:                            ASR=  0.28%
+16:24:18 [INFO] src.utils.evaluation: STATIC ENS (AT) hsja       Acc= 98.25%  F1= 95.67%  TPR= 94.99%  FPR=  0.48%
+16:24:18 [INFO] src.pipeline.ensemble_cli:                            ASR=  0.52%
+16:24:18 [INFO] src.utils.evaluation: STATIC ENS (AT) jsma       Acc= 98.73%  F1= 97.13%  TPR= 96.88%  FPR=  0.34%
+16:24:18 [INFO] src.pipeline.ensemble_cli:                            ASR=  0.07%
+16:24:18 [INFO] src.utils.evaluation: STATIC ENS (AT) pgd        Acc= 98.49%  F1= 94.98%  TPR= 94.80%  FPR=  0.40%
+16:24:18 [INFO] src.pipeline.ensemble_cli:                            ASR=  0.29%
+16:24:18 [INFO] src.utils.evaluation: STATIC ENS (AT) zoo        Acc= 98.69%  F1= 96.84%  TPR= 96.36%  FPR=  0.35%
+16:24:18 [INFO] src.pipeline.ensemble_cli:                            ASR=  0.09%
+16:24:18 [INFO] src.utils.loaders: Loading cat (AT): /Users/trungnguye2n.dev/Downloads/AIDER/IIOT-2021/defense/models/cat_at.pkl
+16:24:18 [INFO] src.utils.loaders: Loading rf (AT): /Users/trungnguye2n.dev/Downloads/AIDER/IIOT-2021/defense/models/rf_at.pkl
+16:24:18 [INFO] src.utils.loaders: Loading xgb (AT): /Users/trungnguye2n.dev/Downloads/AIDER/IIOT-2021/defense/models/xgb_at.pkl
+16:24:18 [INFO] src.utils.loaders: Loading et (AT): /Users/trungnguye2n.dev/Downloads/AIDER/IIOT-2021/defense/models/et_at.pkl
+16:24:18 [INFO] src.utils.loaders: Loading lgbm (AT): /Users/trungnguye2n.dev/Downloads/AIDER/IIOT-2021/defense/models/lgbm_at.pkl
+16:24:18 [INFO] src.utils.loaders: Loading mlp (AT): /Users/trungnguye2n.dev/Downloads/AIDER/IIOT-2021/defense/models/mlp_at.pth
+16:24:18 [INFO] art.estimators.classification.pytorch: Inferred 2 hidden layers on PyTorch classifier.
+16:24:19 [INFO] src.utils.evaluation: MI ENS (AT) clean          Acc= 98.71%  F1= 97.03%  TPR= 96.69%  FPR=  0.35%
+16:24:19 [INFO] src.utils.evaluation: MI ENS (AT) cw             Acc= 96.82%  F1= 93.65%  TPR= 92.78%  FPR=  0.90%
+16:24:19 [INFO] src.pipeline.ensemble_cli:                            ASR=  2.01%
+16:24:19 [INFO] src.utils.evaluation: MI ENS (AT) deepfool       Acc= 98.15%  F1= 94.45%  TPR= 93.29%  FPR=  0.50%
+16:24:19 [INFO] src.pipeline.ensemble_cli:                            ASR=  0.64%
+16:24:19 [INFO] src.utils.evaluation: MI ENS (AT) fgsm           Acc= 98.47%  F1= 95.45%  TPR= 95.37%  FPR=  0.40%
+16:24:19 [INFO] src.pipeline.ensemble_cli:                            ASR=  0.26%
+16:24:20 [INFO] src.utils.evaluation: MI ENS (AT) hsja           Acc= 98.25%  F1= 95.74%  TPR= 95.67%  FPR=  0.47%
+16:24:20 [INFO] src.pipeline.ensemble_cli:                            ASR=  0.52%
+16:24:20 [INFO] src.utils.evaluation: MI ENS (AT) jsma           Acc= 98.69%  F1= 96.79%  TPR= 96.58%  FPR=  0.35%
+16:24:20 [INFO] src.pipeline.ensemble_cli:                            ASR=  0.07%
+16:24:20 [INFO] src.utils.evaluation: MI ENS (AT) pgd            Acc= 98.40%  F1= 94.62%  TPR= 94.57%  FPR=  0.42%
+16:24:20 [INFO] src.pipeline.ensemble_cli:                            ASR=  0.34%
+16:24:20 [INFO] src.utils.evaluation: MI ENS (AT) zoo            Acc= 98.67%  F1= 96.76%  TPR= 96.53%  FPR=  0.36%
+16:24:20 [INFO] src.pipeline.ensemble_cli:                            ASR=  0.07%
+16:24:20 [INFO] src.utils.loaders: Loading cat (AT): /Users/trungnguye2n.dev/Downloads/AIDER/IIOT-2021/defense/models/cat_at.pkl
+16:24:20 [INFO] src.utils.loaders: Loading rf (AT): /Users/trungnguye2n.dev/Downloads/AIDER/IIOT-2021/defense/models/rf_at.pkl
+16:24:20 [INFO] src.utils.loaders: Loading xgb (AT): /Users/trungnguye2n.dev/Downloads/AIDER/IIOT-2021/defense/models/xgb_at.pkl
+16:24:20 [INFO] src.utils.loaders: Loading et (AT): /Users/trungnguye2n.dev/Downloads/AIDER/IIOT-2021/defense/models/et_at.pkl
+16:24:20 [INFO] src.utils.loaders: Loading lgbm (AT): /Users/trungnguye2n.dev/Downloads/AIDER/IIOT-2021/defense/models/lgbm_at.pkl
+16:24:20 [INFO] src.utils.loaders: Loading mlp (AT): /Users/trungnguye2n.dev/Downloads/AIDER/IIOT-2021/defense/models/mlp_at.pth
+16:24:20 [INFO] art.estimators.classification.pytorch: Inferred 2 hidden layers on PyTorch classifier.
+16:24:20 [INFO] src.utils.evaluation: MI2 ENS (AT) clean         Acc= 98.74%  F1= 97.15%  TPR= 96.89%  FPR=  0.34%
+16:24:21 [INFO] src.utils.evaluation: MI2 ENS (AT) cw            Acc= 96.89%  F1= 93.65%  TPR= 92.61%  FPR=  0.89%
+16:24:21 [INFO] src.pipeline.ensemble_cli:                            ASR=  1.98%
+16:24:21 [INFO] src.utils.evaluation: MI2 ENS (AT) deepfool      Acc= 97.93%  F1= 93.21%  TPR= 90.76%  FPR=  0.58%
+16:24:21 [INFO] src.pipeline.ensemble_cli:                            ASR=  0.86%
+16:24:21 [INFO] src.utils.evaluation: MI2 ENS (AT) fgsm          Acc= 98.50%  F1= 95.62%  TPR= 95.39%  FPR=  0.40%
+16:24:21 [INFO] src.pipeline.ensemble_cli:                            ASR=  0.26%
+16:24:22 [INFO] src.utils.evaluation: MI2 ENS (AT) hsja          Acc= 98.28%  F1= 95.94%  TPR= 95.37%  FPR=  0.47%
+16:24:22 [INFO] src.pipeline.ensemble_cli:                            ASR=  0.48%
+16:24:22 [INFO] src.utils.evaluation: MI2 ENS (AT) jsma          Acc= 98.69%  F1= 96.79%  TPR= 96.58%  FPR=  0.35%
+16:24:22 [INFO] src.pipeline.ensemble_cli:                            ASR=  0.10%
+16:24:22 [INFO] src.utils.evaluation: MI2 ENS (AT) pgd           Acc= 98.49%  F1= 95.14%  TPR= 94.98%  FPR=  0.40%
+16:24:22 [INFO] src.pipeline.ensemble_cli:                            ASR=  0.29%
+16:24:23 [INFO] src.utils.evaluation: MI2 ENS (AT) zoo           Acc= 98.66%  F1= 96.58%  TPR= 96.20%  FPR=  0.36%
+16:24:23 [INFO] src.pipeline.ensemble_cli:                            ASR=  0.12%
+16:24:23 [INFO] src.utils.loaders: Loading cat (AT): /Users/trungnguye2n.dev/Downloads/AIDER/IIOT-2021/defense/models/cat_at.pkl
+16:24:23 [INFO] src.utils.loaders: Loading rf (AT): /Users/trungnguye2n.dev/Downloads/AIDER/IIOT-2021/defense/models/rf_at.pkl
+16:24:23 [INFO] src.utils.loaders: Loading xgb (AT): /Users/trungnguye2n.dev/Downloads/AIDER/IIOT-2021/defense/models/xgb_at.pkl
+16:24:23 [INFO] src.utils.loaders: Loading et (AT): /Users/trungnguye2n.dev/Downloads/AIDER/IIOT-2021/defense/models/et_at.pkl
+16:24:23 [INFO] src.utils.loaders: Loading lgbm (AT): /Users/trungnguye2n.dev/Downloads/AIDER/IIOT-2021/defense/models/lgbm_at.pkl
+16:24:23 [INFO] src.utils.loaders: Loading mlp (AT): /Users/trungnguye2n.dev/Downloads/AIDER/IIOT-2021/defense/models/mlp_at.pth
+16:24:23 [INFO] art.estimators.classification.pytorch: Inferred 2 hidden layers on PyTorch classifier.
+16:24:23 [INFO] src.utils.evaluation: STATIC ENS (AT) +MagNet clean  Acc= 98.74%  F1= 97.23%  TPR= 96.89%  FPR=  0.34%
+16:24:23 [INFO] src.pipeline.ensemble_cli: STATIC ENS (AT) +MagNet cw  ASR=  2.32%  rej=22.98%
+16:24:24 [INFO] src.pipeline.ensemble_cli: STATIC ENS (AT) +MagNet deepfool  ASR=  5.40%  rej=95.14%
+16:24:24 [INFO] src.pipeline.ensemble_cli: STATIC ENS (AT) +MagNet fgsm  ASR=  0.16%  rej= 1.07%
+16:24:25 [INFO] src.pipeline.ensemble_cli: STATIC ENS (AT) +MagNet hsja  ASR=  0.13%  rej=87.02%
+16:24:25 [INFO] src.pipeline.ensemble_cli: STATIC ENS (AT) +MagNet jsma  ASR=  0.07%  rej= 1.10%
+16:24:25 [INFO] src.pipeline.ensemble_cli: STATIC ENS (AT) +MagNet pgd  ASR=  0.14%  rej= 1.07%
+16:24:26 [INFO] src.pipeline.ensemble_cli: STATIC ENS (AT) +MagNet zoo  ASR=  0.08%  rej=14.14%
+16:24:26 [INFO] src.utils.loaders: Loading cat (AT): /Users/trungnguye2n.dev/Downloads/AIDER/IIOT-2021/defense/models/cat_at.pkl
+16:24:26 [INFO] src.utils.loaders: Loading rf (AT): /Users/trungnguye2n.dev/Downloads/AIDER/IIOT-2021/defense/models/rf_at.pkl
+16:24:26 [INFO] src.utils.loaders: Loading xgb (AT): /Users/trungnguye2n.dev/Downloads/AIDER/IIOT-2021/defense/models/xgb_at.pkl
+16:24:26 [INFO] src.utils.loaders: Loading et (AT): /Users/trungnguye2n.dev/Downloads/AIDER/IIOT-2021/defense/models/et_at.pkl
+16:24:26 [INFO] src.utils.loaders: Loading lgbm (AT): /Users/trungnguye2n.dev/Downloads/AIDER/IIOT-2021/defense/models/lgbm_at.pkl
+16:24:26 [INFO] src.utils.loaders: Loading mlp (AT): /Users/trungnguye2n.dev/Downloads/AIDER/IIOT-2021/defense/models/mlp_at.pth
+16:24:26 [INFO] art.estimators.classification.pytorch: Inferred 2 hidden layers on PyTorch classifier.
+16:24:26 [INFO] src.utils.evaluation: MI ENS (AT) +MagNet clean  Acc= 98.71%  F1= 97.03%  TPR= 96.69%  FPR=  0.35%
+16:24:27 [INFO] src.pipeline.ensemble_cli: MI ENS (AT) +MagNet cw     ASR=  2.25%  rej=22.98%
+16:24:27 [INFO] src.pipeline.ensemble_cli: MI ENS (AT) +MagNet deepfool  ASR=  4.32%  rej=95.14%
+16:24:28 [INFO] src.pipeline.ensemble_cli: MI ENS (AT) +MagNet fgsm   ASR=  0.16%  rej= 1.07%
+16:24:28 [INFO] src.pipeline.ensemble_cli: MI ENS (AT) +MagNet hsja   ASR=  0.13%  rej=87.02%
+16:24:28 [INFO] src.pipeline.ensemble_cli: MI ENS (AT) +MagNet jsma   ASR=  0.03%  rej= 1.10%
+16:24:29 [INFO] src.pipeline.ensemble_cli: MI ENS (AT) +MagNet pgd    ASR=  0.17%  rej= 1.07%
+16:24:29 [INFO] src.pipeline.ensemble_cli: MI ENS (AT) +MagNet zoo    ASR=  0.06%  rej=14.14%
+16:24:29 [INFO] src.utils.loaders: Loading cat (AT): /Users/trungnguye2n.dev/Downloads/AIDER/IIOT-2021/defense/models/cat_at.pkl
+16:24:29 [INFO] src.utils.loaders: Loading rf (AT): /Users/trungnguye2n.dev/Downloads/AIDER/IIOT-2021/defense/models/rf_at.pkl
+16:24:29 [INFO] src.utils.loaders: Loading xgb (AT): /Users/trungnguye2n.dev/Downloads/AIDER/IIOT-2021/defense/models/xgb_at.pkl
+16:24:29 [INFO] src.utils.loaders: Loading et (AT): /Users/trungnguye2n.dev/Downloads/AIDER/IIOT-2021/defense/models/et_at.pkl
+16:24:29 [INFO] src.utils.loaders: Loading lgbm (AT): /Users/trungnguye2n.dev/Downloads/AIDER/IIOT-2021/defense/models/lgbm_at.pkl
+16:24:29 [INFO] src.utils.loaders: Loading mlp (AT): /Users/trungnguye2n.dev/Downloads/AIDER/IIOT-2021/defense/models/mlp_at.pth
+16:24:29 [INFO] art.estimators.classification.pytorch: Inferred 2 hidden layers on PyTorch classifier.
+16:24:30 [INFO] src.utils.evaluation: MI2 ENS (AT) +MagNet clean  Acc= 98.74%  F1= 97.15%  TPR= 96.89%  FPR=  0.34%
+16:24:30 [INFO] src.pipeline.ensemble_cli: MI2 ENS (AT) +MagNet cw    ASR=  2.30%  rej=22.98%
+16:24:30 [INFO] src.pipeline.ensemble_cli: MI2 ENS (AT) +MagNet deepfool  ASR=  5.04%  rej=95.14%
+16:24:31 [INFO] src.pipeline.ensemble_cli: MI2 ENS (AT) +MagNet fgsm  ASR=  0.17%  rej= 1.07%
+16:24:31 [INFO] src.pipeline.ensemble_cli: MI2 ENS (AT) +MagNet hsja  ASR=  0.00%  rej=87.02%
+16:24:32 [INFO] src.pipeline.ensemble_cli: MI2 ENS (AT) +MagNet jsma  ASR=  0.07%  rej= 1.10%
+16:24:32 [INFO] src.pipeline.ensemble_cli: MI2 ENS (AT) +MagNet pgd   ASR=  0.14%  rej= 1.07%
+16:24:32 [INFO] src.pipeline.ensemble_cli: MI2 ENS (AT) +MagNet zoo   ASR=  0.10%  rej=14.14%
+16:24:32 [INFO] src.utils.loaders: Loading cat (baseline): /Users/trungnguye2n.dev/Downloads/AIDER/IIOT-2021/training/models/standard_cat.pkl
+16:24:32 [INFO] src.utils.loaders: Loading rf (baseline): /Users/trungnguye2n.dev/Downloads/AIDER/IIOT-2021/training/models/standard_rf.pkl
+16:24:32 [INFO] src.utils.loaders: Loading xgb (baseline): /Users/trungnguye2n.dev/Downloads/AIDER/IIOT-2021/training/models/standard_xgb.pkl
+16:24:32 [INFO] src.utils.loaders: Loading et (baseline): /Users/trungnguye2n.dev/Downloads/AIDER/IIOT-2021/training/models/standard_et.pkl
+16:24:32 [INFO] src.utils.loaders: Loading lgbm (baseline): /Users/trungnguye2n.dev/Downloads/AIDER/IIOT-2021/training/models/standard_lgbm.pkl
+16:24:32 [INFO] src.utils.loaders: Loading mlp (baseline): /Users/trungnguye2n.dev/Downloads/AIDER/IIOT-2021/training/models/standard_mlp.pth
+16:24:32 [INFO] art.estimators.classification.pytorch: Inferred 2 hidden layers on PyTorch classifier.
+16:24:33 [INFO] src.utils.evaluation: STATIC ENS (baseline) +MagNet clean  Acc= 98.79%  F1= 97.40%  TPR= 97.82%  FPR=  0.32%
+16:24:33 [INFO] src.pipeline.ensemble_cli: STATIC ENS (baseline) +MagNet cw  ASR=  0.98%  rej=22.98%
+16:24:33 [INFO] src.pipeline.ensemble_cli: STATIC ENS (baseline) +MagNet deepfool  ASR= 90.32%  rej=95.14%
+16:24:34 [INFO] src.pipeline.ensemble_cli: STATIC ENS (baseline) +MagNet fgsm  ASR= 26.22%  rej= 1.07%
+16:24:34 [INFO] src.pipeline.ensemble_cli: STATIC ENS (baseline) +MagNet hsja  ASR= 97.05%  rej=87.02%
+16:24:34 [INFO] src.pipeline.ensemble_cli: STATIC ENS (baseline) +MagNet jsma  ASR=  0.10%  rej= 1.10%
+16:24:35 [INFO] src.pipeline.ensemble_cli: STATIC ENS (baseline) +MagNet pgd  ASR= 27.44%  rej= 1.07%
+16:24:35 [INFO] src.pipeline.ensemble_cli: STATIC ENS (baseline) +MagNet zoo  ASR=  0.06%  rej=14.14%
+16:24:35 [INFO] src.utils.loaders: Loading cat (baseline): /Users/trungnguye2n.dev/Downloads/AIDER/IIOT-2021/training/models/standard_cat.pkl
+16:24:35 [INFO] src.utils.loaders: Loading rf (baseline): /Users/trungnguye2n.dev/Downloads/AIDER/IIOT-2021/training/models/standard_rf.pkl
+16:24:35 [INFO] src.utils.loaders: Loading xgb (baseline): /Users/trungnguye2n.dev/Downloads/AIDER/IIOT-2021/training/models/standard_xgb.pkl
+16:24:35 [INFO] src.utils.loaders: Loading et (baseline): /Users/trungnguye2n.dev/Downloads/AIDER/IIOT-2021/training/models/standard_et.pkl
+16:24:35 [INFO] src.utils.loaders: Loading lgbm (baseline): /Users/trungnguye2n.dev/Downloads/AIDER/IIOT-2021/training/models/standard_lgbm.pkl
+16:24:35 [INFO] src.utils.loaders: Loading mlp (baseline): /Users/trungnguye2n.dev/Downloads/AIDER/IIOT-2021/training/models/standard_mlp.pth
+16:24:35 [INFO] art.estimators.classification.pytorch: Inferred 2 hidden layers on PyTorch classifier.
+16:24:35 [INFO] src.utils.evaluation: MI ENS (baseline) +MagNet clean  Acc= 98.69%  F1= 96.66%  TPR= 97.04%  FPR=  0.34%
+16:24:35 [INFO] src.pipeline.ensemble_cli: MI ENS (baseline) +MagNet cw  ASR=  1.47%  rej=22.98%
+16:24:36 [INFO] src.pipeline.ensemble_cli: MI ENS (baseline) +MagNet deepfool  ASR= 95.29%  rej=95.14%
+16:24:36 [INFO] src.pipeline.ensemble_cli: MI ENS (baseline) +MagNet fgsm  ASR= 20.40%  rej= 1.07%
+16:24:36 [INFO] src.pipeline.ensemble_cli: MI ENS (baseline) +MagNet hsja  ASR= 98.25%  rej=87.02%
+16:24:37 [INFO] src.pipeline.ensemble_cli: MI ENS (baseline) +MagNet jsma  ASR=  0.12%  rej= 1.10%
+16:24:37 [INFO] src.pipeline.ensemble_cli: MI ENS (baseline) +MagNet pgd  ASR= 21.81%  rej= 1.07%
+16:24:38 [INFO] src.pipeline.ensemble_cli: MI ENS (baseline) +MagNet zoo  ASR=  0.08%  rej=14.14%
+16:24:38 [INFO] src.utils.loaders: Loading cat (baseline): /Users/trungnguye2n.dev/Downloads/AIDER/IIOT-2021/training/models/standard_cat.pkl
+16:24:38 [INFO] src.utils.loaders: Loading rf (baseline): /Users/trungnguye2n.dev/Downloads/AIDER/IIOT-2021/training/models/standard_rf.pkl
+16:24:38 [INFO] src.utils.loaders: Loading xgb (baseline): /Users/trungnguye2n.dev/Downloads/AIDER/IIOT-2021/training/models/standard_xgb.pkl
+16:24:38 [INFO] src.utils.loaders: Loading et (baseline): /Users/trungnguye2n.dev/Downloads/AIDER/IIOT-2021/training/models/standard_et.pkl
+16:24:38 [INFO] src.utils.loaders: Loading lgbm (baseline): /Users/trungnguye2n.dev/Downloads/AIDER/IIOT-2021/training/models/standard_lgbm.pkl
+16:24:38 [INFO] src.utils.loaders: Loading mlp (baseline): /Users/trungnguye2n.dev/Downloads/AIDER/IIOT-2021/training/models/standard_mlp.pth
+16:24:38 [INFO] art.estimators.classification.pytorch: Inferred 2 hidden layers on PyTorch classifier.
+16:24:38 [INFO] src.utils.evaluation: MI2 ENS (baseline) +MagNet clean  Acc= 98.79%  F1= 97.40%  TPR= 97.82%  FPR=  0.32%
+16:24:38 [INFO] src.pipeline.ensemble_cli: MI2 ENS (baseline) +MagNet cw  ASR=  1.03%  rej=22.98%
+16:24:38 [INFO] src.pipeline.ensemble_cli: MI2 ENS (baseline) +MagNet deepfool  ASR= 93.19%  rej=95.14%
+16:24:39 [INFO] src.pipeline.ensemble_cli: MI2 ENS (baseline) +MagNet fgsm  ASR= 26.24%  rej= 1.07%
+16:24:39 [INFO] src.pipeline.ensemble_cli: MI2 ENS (baseline) +MagNet hsja  ASR= 96.78%  rej=87.02%
+16:24:40 [INFO] src.pipeline.ensemble_cli: MI2 ENS (baseline) +MagNet jsma  ASR=  0.12%  rej= 1.10%
+16:24:40 [INFO] src.pipeline.ensemble_cli: MI2 ENS (baseline) +MagNet pgd  ASR= 27.44%  rej= 1.07%
+16:24:40 [INFO] src.pipeline.ensemble_cli: MI2 ENS (baseline) +MagNet zoo  ASR=  0.08%  rej=14.14%
+
+==============================================================================================================
+  Scenario       Tgt/Strat   Clean F1  CleanRej  ASR per attack
+--------------------------------------------------------------------------------------------------------------
+  E1             static        97.40%     0.00%  cw=1.5%  deepfool=67.9%  fgsm=26.1%  hsja=98.4%  jsma=0.2%  pgd=27.4%  zoo=0.2%
+  E1             mi            96.66%     0.00%  cw=2.0%  deepfool=98.9%  fgsm=20.4%  hsja=96.9%  jsma=0.2%  pgd=21.8%  zoo=0.3%
+  E1             mi2           97.40%     0.00%  cw=1.5%  deepfool=68.1%  fgsm=26.1%  hsja=98.4%  jsma=0.2%  pgd=27.3%  zoo=0.3%
+  E2             static        97.23%     0.00%  cw=2.0%  deepfool=0.9%  fgsm=0.3%  hsja=0.5%  jsma=0.1%  pgd=0.3%  zoo=0.1%
+  E2             mi            97.03%     0.00%  cw=2.0%  deepfool=0.6%  fgsm=0.3%  hsja=0.5%  jsma=0.1%  pgd=0.3%  zoo=0.1%
+  E2             mi2           97.15%     0.00%  cw=2.0%  deepfool=0.9%  fgsm=0.3%  hsja=0.5%  jsma=0.1%  pgd=0.3%  zoo=0.1%
+  E3             static        97.23%     1.09%  cw=2.3%(rej23%)  deepfool=5.4%(rej95%)  fgsm=0.2%(rej1%)  hsja=0.1%(rej87%)  jsma=0.1%(rej1%)  pgd=0.1%(rej1%)  zoo=0.1%(rej14%)
+  E3             mi            97.03%     1.09%  cw=2.3%(rej23%)  deepfool=4.3%(rej95%)  fgsm=0.2%(rej1%)  hsja=0.1%(rej87%)  jsma=0.0%(rej1%)  pgd=0.2%(rej1%)  zoo=0.1%(rej14%)
+  E3             mi2           97.15%     1.09%  cw=2.3%(rej23%)  deepfool=5.0%(rej95%)  fgsm=0.2%(rej1%)  hsja=0.0%(rej87%)  jsma=0.1%(rej1%)  pgd=0.1%(rej1%)  zoo=0.1%(rej14%)
+  E4             static        97.40%     1.09%  cw=1.0%(rej23%)  deepfool=90.3%(rej95%)  fgsm=26.2%(rej1%)  hsja=97.0%(rej87%)  jsma=0.1%(rej1%)  pgd=27.4%(rej1%)  zoo=0.1%(rej14%)
+  E4             mi            96.66%     1.09%  cw=1.5%(rej23%)  deepfool=95.3%(rej95%)  fgsm=20.4%(rej1%)  hsja=98.3%(rej87%)  jsma=0.1%(rej1%)  pgd=21.8%(rej1%)  zoo=0.1%(rej14%)
+  E4             mi2           97.40%     1.09%  cw=1.0%(rej23%)  deepfool=93.2%(rej95%)  fgsm=26.2%(rej1%)  hsja=96.8%(rej87%)  jsma=0.1%(rej1%)  pgd=27.4%(rej1%)  zoo=0.1%(rej14%)
+==============================================================================================================

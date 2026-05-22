@@ -1,0 +1,9 @@
+# AT attack weights cho ExtraTrees — PGD dominant, FGSM giảm.
+attack_weights:
+  pgd: 1.0
+  fgsm: 2.0
+  deepfool: 10.0
+  cw: 8.0
+  jsma: 2.0
+  zoo: 8.0
+  hsja: 8.0

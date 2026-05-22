@@ -1,0 +1,17 @@
+Train: (17000, 23)  Test: (5884, 23)  n_feat: 23
+
+[MLPInputNorm] train_time=2.7s  Acc=97.52%  F1=91.85%
+[MLP baseline] (loaded)  Acc=97.26%  F1=91.87%
+Δ Acc = +0.25%  Δ F1 = -0.02%
+
+Quick adv attack summary (n=200, MLPInputNorm direct ART wrap):
+  attack      time(s)     global_max worst_feat      ratio   >5x   asr%  nan  inf
+  fgsm            0.0      5.562e+08 DstLoss          1.00     0   69.2 False False
+  deepfool        0.0       4.96e+08 DIntPkt          1.00     0  100.0 False False
+  hsja            2.1       4.96e+08 DIntPkt          1.00     0  100.0 False False
+
+Notes:
+  - 'ratio' = adv max / train max trên feature tệ nhất.
+  - >5x = số feature có max overshoot >5x train max.
+  - HSJA cao bất thường → confirm scalar clip bug ở art_wrap.py
+    (InputNorm KHÔNG fix bug đó — orthogonal).

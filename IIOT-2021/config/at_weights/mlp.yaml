@@ -1,0 +1,16 @@
+attack_weights:
+  pgd: 10
+  deepfool: 10
+  cw: 10
+  jsma: 10
+  zoo: 10
+  hsja: 10
+  fgsm: 10
+
+  # hsja_rf: 1
+  # hsja_et: 1
+  # hsja_cat: 1
+  # hsja_xgb: 1
+  # hsja_lgbm: 1
+# Pool density: total adv per class = clean count * adv_clean_ratio.
+# >1.0 lets transfer sources fit without diluting self-attack adv.

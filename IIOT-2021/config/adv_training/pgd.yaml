@@ -1,0 +1,6 @@
+eps: 0.9
+eps_step: 0.02
+max_iter: 500
+batch_size: 64
+targeted: false
+verbose: true

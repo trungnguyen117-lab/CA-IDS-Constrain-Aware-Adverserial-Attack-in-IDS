@@ -1,0 +1,18 @@
+{
+  "output": "/Users/trungnguye2n.dev/Downloads/clone_aider/MODBUS-2023/datasets/train_70_balanced_600_repro.csv",
+  "shape": [
+    9206,
+    81
+  ],
+  "label_dist": {
+    "0": 1400,
+    "1": 1285,
+    "2": 1400,
+    "3": 60,
+    "4": 1064,
+    "5": 983,
+    "6": 1043,
+    "7": 1058,
+    "8": 913
+  }
+}

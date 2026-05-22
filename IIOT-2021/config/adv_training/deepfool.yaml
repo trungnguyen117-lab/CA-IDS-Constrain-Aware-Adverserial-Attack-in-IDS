@@ -1,0 +1,5 @@
+# DeepFool AT — test config: AT=10, eval=10 (match ở mức thấp).
+max_iter: 100
+batch_size: 64
+nb_grads: 5
+epsilon: 1.0e-6

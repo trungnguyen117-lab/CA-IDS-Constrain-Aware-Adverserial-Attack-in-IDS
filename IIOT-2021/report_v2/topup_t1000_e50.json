@@ -1,0 +1,23 @@
+{
+  "target_rare": 1000,
+  "epochs": 50,
+  "synth_per_class": {
+    "0": 899,
+    "1": 877,
+    "2": 0,
+    "3": 0,
+    "4": 0
+  },
+  "shape": [
+    17000,
+    34
+  ],
+  "label_dist": {
+    "0": 1000,
+    "1": 1000,
+    "2": 5000,
+    "3": 5000,
+    "4": 5000
+  },
+  "output": "/Users/trungnguye2n.dev/Downloads/official_aider/IIOT-2021/datasets/train_topup_t1000_e50_repro.csv"
+}

@@ -1,0 +1,98 @@
+{
+  "cfg": {
+    "n_estimators": 200,
+    "max_leaf_nodes": null,
+    "n_jobs": -1,
+    "bootstrap": true,
+    "criterion": "entropy",
+    "class_weight": "balanced",
+    "random_state": 0
+  },
+  "metrics": {
+    "acc": 99.78099999999999,
+    "macro_f1": 91.19008511790672,
+    "macro_tpr": 91.75430893672483,
+    "macro_fpr": 0.06445209590566658,
+    "confusion_matrix": [
+      [
+        12,
+        1,
+        0,
+        0,
+        5
+      ],
+      [
+        0,
+        21,
+        0,
+        0,
+        1
+      ],
+      [
+        0,
+        0,
+        6345,
+        208,
+        2
+      ],
+      [
+        0,
+        1,
+        0,
+        689,
+        0
+      ],
+      [
+        1,
+        0,
+        0,
+        0,
+        92714
+      ]
+    ],
+    "per_class_f1": [
+      0.7741935483870968,
+      0.9333333333333333,
+      0.9837209302325581,
+      0.8683049779458097,
+      0.999951465996538
+    ]
+  },
+  "per_class_f1": [
+    0.7741935483870968,
+    0.9333333333333333,
+    0.9837209302325581,
+    0.8683049779458097,
+    0.999951465996538
+  ],
+  "labels": [
+    0,
+    1,
+    2,
+    3,
+    4
+  ],
+  "label_names": [
+    "Backdoor",
+    "CommInj",
+    "DoS",
+    "Reconn",
+    "normal"
+  ],
+  "n_features_used": 30,
+  "dropped_leak_cols": [
+    "IdleTime",
+    "sTtl",
+    "dTtl",
+    "sIpId",
+    "dIpId",
+    "Sport",
+    "Dport",
+    "TcpRtt",
+    "SynAck",
+    "DAppBytes",
+    "DstBytes",
+    "sDSb",
+    "sTos"
+  ]
+}

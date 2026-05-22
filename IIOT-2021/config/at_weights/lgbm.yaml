@@ -1,0 +1,9 @@
+# AT attack weights cho LightGBM — PGD heavy dominant (yếu nhất với PGD).
+attack_weights:
+  pgd: 2.0
+  fgsm: 2.0
+  deepfool: 10.0
+  cw: 2.0
+  jsma: 2.0
+  zoo: 8.0
+  hsja: 8.0

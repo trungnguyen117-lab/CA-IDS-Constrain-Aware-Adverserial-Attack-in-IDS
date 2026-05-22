@@ -1,5 +1,5 @@
 # ZooAttack (Zeroth-Order Optimization) parameters
-# Black-box attack — compatible with all targets (xgb, cat, rf, et, lgbm, ftt)
+# Black-box attack — compatible with all targets (xgb, cat, rf, et, lgbm, dnn)
 
 confidence: 0.0
 targeted: false

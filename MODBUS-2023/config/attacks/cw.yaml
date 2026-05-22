@@ -1,12 +1,10 @@
-# Carlini & Wagner L2 Attack parameters
-# White-box optimization attack — requires differentiable model (ftt only)
-
+# CW L2 attack cho MLP.
 confidence: 0.0
-learning_rate: 0.01
-binary_search_steps: 1
-max_iter: 15
-initial_const: 0.01
-max_halving: 3
-max_doubling: 3
+learning_rate: 0.5
+binary_search_steps: 3
+max_iter: 30
+initial_const: 0.5
+max_halving: 5
+max_doubling: 5
 batch_size: 64
-verbose: false
+verbose: true

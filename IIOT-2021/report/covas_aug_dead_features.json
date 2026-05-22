@@ -1,0 +1,17 @@
+{
+  "pair": [
+    "DoS",
+    "Reconn"
+  ],
+  "thresholds": {
+    "overlap": 0.9,
+    "ks": 0.05,
+    "dist": 0.01
+  },
+  "dead_features": [
+    "DstJitAct"
+  ],
+  "n_features_total": 30,
+  "n_features_dead": 1,
+  "source": "train_for_shap"
+}

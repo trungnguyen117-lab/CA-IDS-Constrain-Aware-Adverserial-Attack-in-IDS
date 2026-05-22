@@ -1,0 +1,5 @@
+# JSMA — saliency map attack cho MLP.
+theta: 1.0
+gamma: 0.05
+batch_size: 64
+verbose: true

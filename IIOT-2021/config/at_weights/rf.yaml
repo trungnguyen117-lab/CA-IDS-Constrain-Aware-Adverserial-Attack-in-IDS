@@ -1,0 +1,9 @@
+# AT attack weights cho RandomForest — PGD dominant, FGSM giảm.
+attack_weights:
+  pgd: 6.0
+  fgsm: 1.0
+  deepfool: 10.0
+  cw: 2.0
+  jsma: 2.0
+  zoo: 8.0
+  hsja: 8.0

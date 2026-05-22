@@ -1,0 +1,9 @@
+# HSJA — decision-boundary BB attack (norm + max_iter điều khiển budget).
+batch_size: 32
+targeted: false
+norm: 2
+max_iter: 100
+max_eval: 200
+init_eval: 200
+init_size: 30
+verbose: true

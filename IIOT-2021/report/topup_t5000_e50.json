@@ -1,0 +1,23 @@
+{
+  "target_rare": 5000,
+  "epochs": 50,
+  "synth_per_class": {
+    "0": 4894,
+    "1": 4871,
+    "2": 0,
+    "3": 0,
+    "4": 0
+  },
+  "shape": [
+    25000,
+    33
+  ],
+  "label_dist": {
+    "0": 5000,
+    "1": 5000,
+    "2": 5000,
+    "3": 5000,
+    "4": 5000
+  },
+  "output": "/Users/trungnguye2n.dev/Downloads/clone_aider/IIOT-2021/datasets/train_balance_t5000_e50.csv"
+}

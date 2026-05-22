@@ -1,0 +1,28 @@
+# Reproduction-grade smoke override — full notebook hyperparams (target=1400,
+# TVAE epochs=200, top_k=50). Output isolated under /tmp/smoke_modbus/ to NOT
+# overwrite canonical artifacts in datasets/.
+#     MODBUS_CONFIG=config.smoke.yaml python run_data.py
+extends: config.yaml
+
+paths:
+  # Inputs (real datasets/ — read-only)
+  train_for_shap: datasets/train_70_balanced_600.csv
+  test_for_shap: datasets/test_30_600.csv
+
+  # All outputs to /tmp/smoke_modbus/ (no canonical files touched)
+  train: /tmp/smoke_modbus/datasets/train_smoke.csv
+  test: /tmp/smoke_modbus/datasets/test_smoke.csv
+  train_shap_real: /tmp/smoke_modbus/datasets/train_shap_repro.csv
+  test_shap_real: /tmp/smoke_modbus/datasets/test_shap_repro.csv
+  topup_dir: /tmp/smoke_modbus/datasets
+
+  models: /tmp/smoke_modbus/baseline/models
+  adv_eval: /tmp/smoke_modbus/adv_samples/adv_eval
+  adv_training: /tmp/smoke_modbus/adv_samples/adv_training
+  report: /tmp/smoke_modbus/report
+
+# End-to-end mode: recompute SHAP from RF+XGB (no CSV shortcut). Output is
+# the recomputed 59-feature set. TVAE balance_to(1400) on that set.
+augment:
+  tvae:
+    epochs: 50

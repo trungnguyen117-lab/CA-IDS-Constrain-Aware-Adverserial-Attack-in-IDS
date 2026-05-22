@@ -1,0 +1,34 @@
+{
+  "leak_mode": "ours",
+  "top_k": 20,
+  "n_candidate": 29,
+  "n_selected": 23,
+  "selected": [
+    "DIntPkt",
+    "DstJitter",
+    "DstLoad",
+    "DstLoss",
+    "DstPkts",
+    "DstRate",
+    "Dur",
+    "Load",
+    "Loss",
+    "Proto",
+    "SAppBytes",
+    "SIntPkt",
+    "SrcBytes",
+    "SrcJitAct",
+    "SrcJitter",
+    "SrcLoad",
+    "SrcLoss",
+    "SrcPkts",
+    "Sum",
+    "TotAppByte",
+    "TotBytes",
+    "TotPkts",
+    "pLoss"
+  ],
+  "covas_dead": [
+    "DstJitAct"
+  ]
+}

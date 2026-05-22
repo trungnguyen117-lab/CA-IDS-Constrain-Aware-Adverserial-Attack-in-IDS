@@ -1,0 +1,26 @@
+# Smoke override — pipeline runs all stages every time. Raw input read from
+# real datasets/, all generated artifacts written to /tmp/smoke_iiot/.
+#     IIOT_CONFIG=config.smoke.yaml python run_data.py
+extends: config.yaml
+
+paths:
+  raw: datasets/wustl_iiot_2021.csv
+
+  clean: /tmp/smoke_iiot/datasets/clean.csv
+  train_real: /tmp/smoke_iiot/datasets/train_real.csv
+  test_real: /tmp/smoke_iiot/datasets/test_real.csv
+  train_for_shap: /tmp/smoke_iiot/datasets/train_for_shap.csv
+  train_shap_real: /tmp/smoke_iiot/datasets/train_shap_real.csv
+  test_final: /tmp/smoke_iiot/datasets/test_final.csv
+
+  train: /tmp/smoke_iiot/datasets/train_smoke.csv
+  test: /tmp/smoke_iiot/datasets/test_smoke.csv
+
+  topup_dir: /tmp/smoke_iiot/datasets
+
+  models: /tmp/smoke_iiot/baseline/models
+  adv_eval: /tmp/smoke_iiot/adv_samples/adv_eval
+  adv_training: /tmp/smoke_iiot/adv_samples/adv_training
+  report: /tmp/smoke_iiot/report
+
+# top_k + tvae epochs inherited from config.yaml

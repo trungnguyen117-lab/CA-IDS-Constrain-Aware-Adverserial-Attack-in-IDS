@@ -1,0 +1,17 @@
+Metadata-Version: 2.4
+Name: aider-src
+Version: 0.1.0
+Summary: Shared adversarial-robustness pipeline core for MODBUS-2023, IIOT-2021, IEC-104
+Requires-Python: >=3.10
+Requires-Dist: numpy
+Requires-Dist: pandas
+Requires-Dist: scikit-learn
+Requires-Dist: pyyaml
+Requires-Dist: joblib
+Requires-Dist: scipy
+Requires-Dist: torch
+Requires-Dist: adversarial-robustness-toolbox
+Requires-Dist: xgboost
+Requires-Dist: lightgbm
+Requires-Dist: catboost
+Requires-Dist: openpyxl

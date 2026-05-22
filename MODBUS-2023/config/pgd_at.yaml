@@ -1,0 +1,32 @@
+# ============================================================================
+# PGD-AT (Madry 2018) sample-budget config — used by 10_train_pgd_at.py
+# ============================================================================
+#
+# Semantics (mirrors 3_adv_train.py): the number of PGD adversarial samples
+# mixed into AT data is computed as
+#
+#     n_adv_budget = int(N_clean / clean_adv_ratio)
+#
+# where N_clean = len(X_train) loaded from --train-data.
+#
+# Resolution order for `clean_adv_ratio`:
+#   1. CLI flag --clean-adv-ratio (if given) — applies to all targets
+#   2. clean_adv_ratio.<target> in this file
+#   3. clean_adv_ratio.default
+#   4. fallback hard default = 1.0
+#
+# Set to -1 (or any non-positive number) to use every available PGD adv sample.
+# ============================================================================
+
+clean_adv_ratio:
+  default: 1.0
+
+  # DL target (white-box PGD adv crafted against dnn)
+  dnn: 1.0
+
+  # Tree targets (transfer PGD adv from dnn)
+  xgb: 1.0
+  cat: 1.0
+  rf: 1.0
+  et: 1.0
+  lgbm: 1.0

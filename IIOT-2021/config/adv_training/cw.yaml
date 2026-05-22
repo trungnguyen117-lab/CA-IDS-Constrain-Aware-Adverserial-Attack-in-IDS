@@ -1,0 +1,12 @@
+# CW L2 attack — same config cho AT và eval (max_iter=100 quá chậm cho 17k
+# samples trên CPU; thử max_iter=60+bin_search=3 cũng > 10min, killed).
+# Compute không cho phép CW mạnh hơn — accept CW ASR ~20% hoặc subsample AT.
+confidence: 0.0
+learning_rate: 0.5
+binary_search_steps: 3
+max_iter: 30
+initial_const: 0.5
+max_halving: 5
+max_doubling: 5
+batch_size: 64
+verbose: true

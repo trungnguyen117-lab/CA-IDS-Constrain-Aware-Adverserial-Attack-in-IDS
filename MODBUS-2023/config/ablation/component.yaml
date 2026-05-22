@@ -1,0 +1,72 @@
+# ============================================================================
+# Group A — Component ablation (FOAMI+ MODBUS-2023)
+# ============================================================================
+#
+# Data & model paths (relative to MODBUS-2023/ root; can be overridden by CLI)
+#
+paths:
+  model_dir: training/models                         # baseline models
+  defense_model_dir: defense/models                 # defended models
+  adv_dir: adv_samples/adv_eval                      # root adv_eval folder
+  surrogate_dir: adv_samples/adv_eval/surrogate_mlp  # surrogate transfer adv
+  # DNN stores its whitebox adv under `dnn/` (QT-based naming convention).
+  whitebox_target_folders:
+    dnn: dnn
+  # Tree models cannot craft gradient-based whitebox. Fall back to DNN's
+  # adv folder as transfer proxy for WB attacks (own zoo/hsja files take
+  # precedence in each tree target's local folder).
+  whitebox_transfer_fallback:
+    xgb: dnn
+    cat: dnn
+    rf: dnn
+    et: dnn
+    lgbm: dnn
+  # Attacks to skip entirely (applies to surrogate + whitebox sources).
+  excluded_attacks: []
+
+# ============================================================================
+# 4 scenarios. Each flips AT on/off at either single-model scope (one row
+# per target) or ensemble scope (wsv and mi voting).
+#
+# Attack suites:
+#   surrogate: transfer attacks from adv_eval/surrogate_mlp/ — all models
+#              see the SAME X_adv.
+#   whitebox : per-target adv CSVs in adv_eval/{target}/. DNN uses own WB;
+#              tree models use DNN's adv as transfer proxy for WB (via
+#              whitebox_transfer_fallback), plus own zoo/hsja locally.
+#
+# Field reference:
+#   scope     — "single" (loop over each target) or "ensemble"
+#   targets   — list of target names for scope=single
+#   strategy  — ensemble voting: "wsv" (weighted soft voting) or "mi"
+#   at        — true → defense/models/, false → training/models/
+# ============================================================================
+
+experiments:
+  # === Single-model scenarios ===============================================
+
+  - exp_id: S1_baseline_single
+    description: "Baseline single model (no AT) — floor per-target."
+    scope: single
+    targets: [xgb, cat, rf, et, lgbm, dnn]
+    at: false
+
+  - exp_id: S2_at_single
+    description: "AT single model — pure adversarial training effect."
+    scope: single
+    targets: [xgb, cat, rf, et, lgbm, dnn]
+    at: true
+
+  # === Ensemble scenarios (wsv + mi) =======================================
+
+  - exp_id: E1_baseline_ens
+    description: "Baseline ensemble — compare wsv vs mi (no AT)."
+    scope: ensemble
+    strategy: [wsv, mi]
+    at: false
+
+  - exp_id: E2_at_ens
+    description: "AT ensemble — compare voting strategies."
+    scope: ensemble
+    strategy: [wsv, mi]
+    at: true

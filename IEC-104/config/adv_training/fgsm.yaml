@@ -1,7 +1,0 @@
-# FGSM (Fast Gradient Sign Method) parameters
-# White-box gradient attack — requires differentiable model (lstm, resdnn only)
-
-eps: 0.1
-eps_step: 0.01
-batch_size: 64
-targeted: false

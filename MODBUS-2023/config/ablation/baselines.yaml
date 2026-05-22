@@ -1,0 +1,98 @@
+# ============================================================================
+# Group B — Baseline defense comparison (FOAMI+ MODBUS-2023)
+# ============================================================================
+#
+# Compares the FOAMI+ defense (AT on TVAE-augmented data) against three
+# classical baselines: PGD-AT (Madry 2018), Feature Squeezing (Xu 2018),
+# Defensive Distillation (Papernot 2016).
+#
+# All five scenarios use single-model scope so the defense primitive is
+# isolated from ensemble/aggregation effects (those are explored in Group A).
+# ============================================================================
+
+paths:
+  model_dir: training/models
+  defense_model_dir: defense/models
+  model_pgd_at_dir: defense/pgd_at
+  model_distill_dir: defense/distill
+  # B6/B7 — Double-Edged Defense (Smart Grid IEC61850-104 paper).
+  # Note: DED is DL-only by design (paper uses flat DNN). Trees are excluded
+  # from B6/B7 because (i) trees don't train incrementally so DED's per-epoch
+  # online AT pattern doesn't apply — closest tree analog is B2 PGD-AT;
+  # (ii) trees can't backprop on KLDivLoss for self-distillation.
+  model_ded_at_dir: defense/models_ded_at
+  model_ded_distill_dir: defense/models_ded_distill
+
+  adv_dir: adv_samples/adv_eval
+  surrogate_dir: adv_samples/adv_eval/surrogate_mlp
+
+  whitebox_target_folders:
+    dnn: dnn
+
+  whitebox_transfer_fallback:
+    xgb: dnn
+    cat: dnn
+    rf: dnn
+    et: dnn
+    lgbm: dnn
+
+  excluded_attacks: []
+
+# ============================================================================
+# 5 single-model scenarios.
+# ============================================================================
+
+experiments:
+  - exp_id: B0_baseline_single
+    description: "Baseline single — no defense (floor reference)."
+    scope: single
+    targets: [xgb, cat, rf, et, lgbm, dnn]
+    defense: baseline
+
+  - exp_id: B1_foami_single
+    description: "FOAMI+: AT on TVAE-augmented data."
+    scope: single
+    targets: [xgb, cat, rf, et, lgbm, dnn]
+    defense: foami
+
+  - exp_id: B2_pgd_at_single
+    description: "PGD-AT only — Madry 2018, single-attack AT."
+    scope: single
+    targets: [xgb, cat, rf, et, lgbm, dnn]
+    defense: pgd_at
+
+  - exp_id: B3_fs_single
+    description: "Feature Squeezing (per-target bit_depth, percentile clip 1-99%)."
+    scope: single
+    targets: [xgb, cat, rf, et, lgbm, dnn]
+    defense: feature_squeezing
+    # `fs_bit_depth` accepts either a scalar (uniform for all targets) or a
+    # dict {target: int} with optional "default" key. Tree models lose more
+    # clean acc at low bit_depth, so they get a gentler quantization here.
+    fs_bit_depth:
+      default: 4
+      dnn: 4
+      xgb: 6
+      cat: 6
+      rf: 6
+      et: 6
+      lgbm: 6
+    fs_clip_quantile: 0.99
+
+  - exp_id: B4_distill_single
+    description: "Defensive Distillation (T=20) — DNN only."
+    scope: single
+    targets: [dnn]
+    defense: distillation
+
+  - exp_id: B6_ded_at_single
+    description: "DED online PGD-AT (alternating clean/adv steps) — DNN only."
+    scope: single
+    targets: [dnn]            # DL only — see DED note in `paths` section
+    defense: ded_at           # uses model_ded_at_dir; AT=true
+
+  - exp_id: B7_ded_distill_single
+    description: "DED self-distillation (T=4, one-hot soft targets) — DNN only."
+    scope: single
+    targets: [dnn]            # DL only — KLDivLoss requires backprop
+    defense: ded_distill      # uses model_ded_distill_dir; AT=false

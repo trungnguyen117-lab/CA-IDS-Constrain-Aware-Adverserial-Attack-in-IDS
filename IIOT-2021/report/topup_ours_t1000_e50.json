@@ -1,0 +1,24 @@
+{
+  "leak_mode": "ours",
+  "target_rare": 1000,
+  "epochs": 50,
+  "synth_per_class": {
+    "0": 894,
+    "1": 871,
+    "2": 0,
+    "3": 0,
+    "4": 0
+  },
+  "shape": [
+    17000,
+    24
+  ],
+  "label_dist": {
+    "0": 1000,
+    "1": 1000,
+    "2": 5000,
+    "3": 5000,
+    "4": 5000
+  },
+  "output": "datasets/train_topup_ours_t1000_e50.csv"
+}

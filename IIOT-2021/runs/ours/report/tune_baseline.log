@@ -1,0 +1,30 @@
+16:21:20 [INFO] tune_ensemble: Val data: /Users/trungnguye2n.dev/Downloads/AIDER/IIOT-2021/datasets/test_final.csv  ((5884, 24))
+16:21:20 [INFO] src.utils.loaders: Loading cat (baseline): /Users/trungnguye2n.dev/Downloads/AIDER/IIOT-2021/training/models/standard_cat.pkl
+16:21:20 [INFO] src.utils.loaders: Loading rf (baseline): /Users/trungnguye2n.dev/Downloads/AIDER/IIOT-2021/training/models/standard_rf.pkl
+16:21:20 [INFO] src.utils.loaders: Loading xgb (baseline): /Users/trungnguye2n.dev/Downloads/AIDER/IIOT-2021/training/models/standard_xgb.pkl
+16:21:20 [INFO] src.utils.loaders: Loading et (baseline): /Users/trungnguye2n.dev/Downloads/AIDER/IIOT-2021/training/models/standard_et.pkl
+16:21:20 [INFO] src.utils.loaders: Loading lgbm (baseline): /Users/trungnguye2n.dev/Downloads/AIDER/IIOT-2021/training/models/standard_lgbm.pkl
+16:21:21 [INFO] src.utils.loaders: Loading mlp (baseline): /Users/trungnguye2n.dev/Downloads/AIDER/IIOT-2021/training/models/standard_mlp.pth
+16:21:21 [INFO] tune_ensemble: Loaded 6 models (baseline): ['cat', 'rf', 'xgb', 'et', 'lgbm', 'mlp']
+16:21:21 [INFO] art.estimators.classification.pytorch: Inferred 2 hidden layers on PyTorch classifier.
+16:21:21 [INFO] tune_ensemble: ============================================================
+16:21:21 [INFO] tune_ensemble: Step 1 — DE tune static weights (6-D simplex)
+16:21:37 [INFO] tune_ensemble: static F1=0.9740  weights={'cat': 0.0528, 'rf': 0.295, 'xgb': 0.0109, 'et': 0.406, 'lgbm': 0.0914, 'mlp': 0.144}
+16:21:37 [INFO] tune_ensemble: ============================================================
+16:21:37 [INFO] tune_ensemble: Step 2 — DE tune mi2 hyperparams (3D)
+16:22:36 [INFO] tune_ensemble: mi2 F1=0.9740  params={'alpha': 0.0207, 'beta': 0.3687, 'tau': 0.0241}  (Δ vs static = +0.0000)
+16:22:36 [INFO] tune_ensemble: ============================================================
+16:22:36 [INFO] tune_ensemble: mi  F1=0.9666  (entropy-weighted, same baseline weights)
+16:22:36 [INFO] tune_ensemble: → /Users/trungnguye2n.dev/Downloads/AIDER/IIOT-2021/runs/ours/config/ensemble_static.yaml
+16:22:36 [INFO] tune_ensemble: → /Users/trungnguye2n.dev/Downloads/AIDER/IIOT-2021/runs/ours/config/ensemble_mi.yaml
+16:22:36 [INFO] tune_ensemble: → /Users/trungnguye2n.dev/Downloads/AIDER/IIOT-2021/runs/ours/config/ensemble_mi2.yaml
+
+============================================================
+ Ensemble tune summary  (baseline models)
+============================================================
+   static  Macro-F1 = 0.9740
+   mi      Macro-F1 = 0.9666    (entropy × static weights)
+   mi2     Macro-F1 = 0.9740   (Δ vs static +0.0000)
+   weights = {'cat': 0.0528, 'rf': 0.295, 'xgb': 0.0109, 'et': 0.406, 'lgbm': 0.0914, 'mlp': 0.144}
+   mi2 params = {'alpha': 0.0207, 'beta': 0.3687, 'tau': 0.0241}
+   wrote yaml → /Users/trungnguye2n.dev/Downloads/AIDER/IIOT-2021/runs/ours/config/ensemble_*.yaml

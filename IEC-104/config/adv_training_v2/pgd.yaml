@@ -1,9 +1,0 @@
-# PGD AT v2 — stronger than eval (eps 0.2→0.3, max_iter 200→300, eps_step 0.01→0.015)
-# White-box iterative attack — requires differentiable model (lstm, resdnn only)
-
-eps: 0.3
-eps_step: 0.015
-max_iter: 300
-batch_size: 64
-targeted: false
-verbose: true

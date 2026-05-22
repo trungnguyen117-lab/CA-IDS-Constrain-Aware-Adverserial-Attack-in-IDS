@@ -1,0 +1,43 @@
+{
+  "raw": "/Users/trungnguye2n.dev/Downloads/Labeled_CICMODBUS2023.csv",
+  "output": "/Users/trungnguye2n.dev/Downloads/clone_aider/MODBUS-2023/datasets/Labeled_CICMODBUS2023_cleaned_repro.csv",
+  "shape": [
+    10231102,
+    81
+  ],
+  "constant_dropped": [
+    "Fwd_URG_Flags",
+    "Bwd_URG_Flags",
+    "URG_Flag_Count",
+    "CWR_Flag_Count",
+    "ECE_Flag_Count",
+    "ICMP_Code",
+    "ICMP_Type"
+  ],
+  "manual_dropped": [
+    "Src_Port",
+    "Dst_Port"
+  ],
+  "label_mapping": {
+    "BENIGN": 0,
+    "BASELINE REPLAY": 1,
+    "BRUTE FORCE": 2,
+    "DELAY RESPONSE": 3,
+    "FRAME STACKING": 4,
+    "LENGTH MANIPULATION": 5,
+    "PAYLOAD INJECTION": 6,
+    "QUERY FLOODING": 7,
+    "RECON": 8
+  },
+  "label_dist": {
+    "0": 8903738,
+    "1": 1836,
+    "2": 1318212,
+    "3": 86,
+    "4": 1520,
+    "5": 1404,
+    "6": 1490,
+    "7": 1511,
+    "8": 1305
+  }
+}

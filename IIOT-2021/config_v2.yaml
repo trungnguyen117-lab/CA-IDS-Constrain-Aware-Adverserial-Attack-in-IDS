@@ -1,0 +1,180 @@
+# IIOT-2021 Project Configuration — variant v2.
+# Inherits the schema of config.yaml; only artifact paths differ
+# (suffix _v2) so runs do not overwrite the canonical artifacts.
+# All paths are relative to IIOT-2021/ root directory.
+
+name: IIOT-2021-v2
+label_col: Label
+n_features: 33
+n_classes: 5
+label_names: [Backdoor, CommInj, DoS, Reconn, normal]
+
+cont_features:
+  - Mean
+  - SrcLoad
+  - DstLoad
+  - Load
+  - SrcRate
+  - DstRate
+  - Rate
+  - SrcLoss
+  - DstLoss
+  - Loss
+  - pLoss
+  - SrcJitter
+  - DstJitter
+  - SIntPkt
+  - DIntPkt
+  - TcpRtt
+  - IdleTime
+  - sTtl
+  - dTtl
+  - SynAck
+  - RunTime
+  - SrcJitAct
+  - DstJitAct
+
+models:
+  tree_targets: [cat, rf, xgb, et, lgbm]
+  dl_targets: [mlp]
+  surrogate_targets: [surrogate_resdnn]
+  ext:
+    {
+      cat: .pkl,
+      rf: .pkl,
+      xgb: .pkl,
+      et: .pkl,
+      lgbm: .pkl,
+      mlp: .pth,
+      surrogate_resdnn: .pth,
+    }
+  dl_factory:
+    mlp: model_local.MLPModel
+    surrogate_resdnn: model_local.SurrogateResDNN
+
+attacks:
+  wb: [fgsm, pgd, deepfool, cw, jsma]
+  bb: [zoo, hsja]
+  compat:
+    cat: [zoo, hsja]
+    rf: [zoo, hsja]
+    xgb: [zoo, hsja]
+    et: [zoo, hsja]
+    lgbm: [zoo, hsja]
+    mlp: [fgsm, pgd, deepfool, cw, jsma, zoo, hsja]
+    surrogate_resdnn: [fgsm, pgd, deepfool, cw, jsma, zoo, hsja]
+  transfer_sources:
+    cat: [mlp]
+    rf: [mlp]
+    xgb: [mlp]
+    et: [mlp]
+    lgbm: [mlp]
+
+paths:
+  # ── Inputs (raw chia sẻ với canonical — chỉ đọc) ──
+  raw: datasets/wustl_iiot_2021.csv
+  clean_noleak: datasets/wustl_iiot_2021_clean_noleak.csv
+
+  # ── Pipeline outputs (suffix _repro để KHÔNG đè canonical artifacts) ──
+  clean: datasets/wustl_iiot_2021_clean_repro.csv
+  train_real: datasets/train_real_repro.csv
+  test_real: datasets/test_real_repro.csv
+  train_for_shap: datasets/train_for_shap_repro.csv
+  train_shap_real: datasets/train_shap_real_repro.csv
+  test_final: datasets/test_final_repro.csv
+  test: datasets/test_final_repro.csv
+  train: datasets/train_topup_t1000_e50_repro.csv
+  topup_dir: datasets                 # filename topup hard-code _repro qua run_data.py
+  train_covas_real: datasets/train_covas_real_repro.csv
+  test_covas_real: datasets/test_covas_real_repro.csv
+
+  # ── Outputs models/adv/report (TÁCH RIÊNG so với config.yaml) ──
+  models: baseline_v2/models
+  models_at: defense_v2/at
+  models_pgd_at: defense_v2/pgd_at
+  models_distill: defense_v2/distill
+  magnet: defense_v2/magnet
+  adv_eval: adv_samples_v2/adv_eval
+  adv_training: adv_samples_v2/adv_training
+  report: report_v2
+
+label:
+  mode: traffic
+  binary_col: Target
+  multi_col: Traffic
+
+drop_cols: [
+    StartTime,
+    LastTime,
+    SrcAddr,
+    DstAddr,
+    IdleTime,
+    sTtl,
+    dTtl,
+    sIpId,
+    dIpId,
+    Sport,
+  ]
+
+subsample: 500000
+
+split:
+  test_size: 0.2
+  random_state: 42
+
+balance:
+  train_cap: 600
+  test_cap: 600
+  random_state: 42
+
+augment:
+  shap_cap: 5000
+  train_target: 8000
+  test_cap: 2000
+  rare_threshold: 500
+  rare_test_ratio: 0.5
+  default_test_ratio: 0.2
+  tvae:
+    epochs: 200
+    batch_size: 512
+    embedding_dim: 64
+    compress_dims: [128, 64]
+    decompress_dims: [64, 128]
+    l2scale: 1.0e-4
+    loss_factor: 2.0
+    cuda: false
+  random_state: 42
+
+covas:
+  pair: [DoS, Reconn]
+  bins: 100
+  thresholds:
+    overlap: 0.90
+    ks: 0.05
+    dist: 0.01
+
+shap:
+  top_k: 30
+  val_size: 0.1
+  random_state: 42
+  drop_covas_dead: true
+  rf_cfg:
+    n_estimators: 200
+    max_depth: 15
+    max_leaf_nodes: null
+    criterion: entropy
+    class_weight: balanced
+    n_jobs: -1
+    bootstrap: true
+    random_state: 0
+  xgb_cfg:
+    max_depth: 15
+    n_estimators: 3000
+    learning_rate: 0.2
+    objective: "multi:softprob"
+    eval_metric: mlogloss
+    booster: gbtree
+    tree_method: hist
+    n_jobs: -1
+    random_state: 42
+    early_stopping_rounds: 50

@@ -1,0 +1,11 @@
+
+==============================================================================================================
+  Scenario       Tgt/Strat   Clean F1  CleanRej  ASR per attack
+--------------------------------------------------------------------------------------------------------------
+  S3             cat           96.37%     1.09%  hsja=0.7%(rej30%)  zoo=0.0%(rej1%)  cw=2.1%(rej23%)  deepfool=7.2%(rej95%)  fgsm=0.1%(rej1%)  jsma=0.1%(rej1%)  pgd=0.2%(rej1%)
+  S3             rf            95.93%     1.09%  hsja=0.3%(rej40%)  zoo=0.0%(rej1%)  cw=0.8%(rej23%)  deepfool=3.3%(rej95%)  fgsm=2.0%(rej1%)  jsma=3.0%(rej1%)  pgd=3.4%(rej1%)
+  S3             xgb           95.86%     1.09%  hsja=0.7%(rej30%)  zoo=0.2%(rej1%)  cw=2.1%(rej23%)  deepfool=4.7%(rej95%)  fgsm=0.4%(rej1%)  jsma=0.0%(rej1%)  pgd=0.1%(rej1%)
+  S3             et            96.37%     1.09%  hsja=0.4%(rej71%)  zoo=0.2%(rej5%)  cw=2.2%(rej23%)  deepfool=4.4%(rej95%)  fgsm=0.6%(rej1%)  jsma=0.1%(rej1%)  pgd=3.2%(rej1%)
+  S3             lgbm          96.26%     1.09%  hsja=0.5%(rej32%)  zoo=0.0%(rej2%)  cw=2.4%(rej23%)  deepfool=6.9%(rej95%)  fgsm=0.2%(rej1%)  jsma=0.0%(rej1%)  pgd=0.2%(rej1%)
+  S3             mlp           95.49%     1.09%  cw=6.5%(rej23%)  deepfool=0.4%(rej95%)  fgsm=0.8%(rej1%)  hsja=16.7%(rej46%)  jsma=0.1%(rej1%)  pgd=0.7%(rej1%)  zoo=0.3%(rej11%)
+==============================================================================================================

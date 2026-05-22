@@ -1,11 +1,10 @@
-# HopSkipJump Attack (HSJA) parameters
-# Black-box decision-boundary attack — compatible with all targets
-
-batch_size: 64
+# HSJA — decision-boundary BB attack (norm + max_iter điều khiển budget).
+batch_size: 32
 targeted: false
 norm: 2
-max_iter: 2
-max_eval: 100
-init_eval: 10
-init_size: 25
+max_iter: 5
+max_eval: 200
+init_eval: 20
+init_size: 30
 verbose: true
+time_out: 60

@@ -1,0 +1,28 @@
+# MagNet config cho IIOT-2021. Reduced epochs cho training nhanh.
+
+ae_i:
+  arch: vanilla
+  hidden_dim: 128
+  bottleneck_dim: 16
+  dropout: 0.1
+  noise_factor: 0.1
+  epochs: 50
+
+ae_ii:
+  arch: residual
+  hidden_dim: 256
+  bottleneck_dim: 32
+  n_res_blocks: 2
+  dropout: 0.1
+  noise_factor: 0.15
+  epochs: 50
+
+lr: 1.0e-3
+batch_size: 512
+
+detector_i_p: 2
+detector_ii_p: 1
+drop_rate: 0.005
+
+val_fraction: 0.1
+save_dir: defense/magnet

@@ -58,3 +58,5 @@ adversarial-robustness-toolbox
 lightgbm
 sdv
 rich
+shap
+tabulate

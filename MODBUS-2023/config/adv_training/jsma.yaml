@@ -1,0 +1,5 @@
+# JSMA — adversarial training generation parameters (reduced cost vs eval)
+theta: 0.02
+gamma: 0.05
+batch_size: 64
+verbose: false

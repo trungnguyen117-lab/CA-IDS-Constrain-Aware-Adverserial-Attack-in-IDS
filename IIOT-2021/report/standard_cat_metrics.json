@@ -1,0 +1,71 @@
+{
+  "model": "cat",
+  "variant": "standard",
+  "metrics": {
+    "acc": 98.7423521414004,
+    "macro_f1": 96.96478357185836,
+    "macro_tpr": 97.42934687953554,
+    "macro_fpr": 0.33013927442324836,
+    "confusion_matrix": [
+      [
+        103,
+        3,
+        0,
+        0,
+        0
+      ],
+      [
+        9,
+        121,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        1944,
+        56,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        1648,
+        0
+      ],
+      [
+        3,
+        1,
+        2,
+        0,
+        1994
+      ]
+    ],
+    "per_class_f1": [
+      0.9321266968325792,
+      0.9490196078431372,
+      0.9853015712113533,
+      0.9832935560859188,
+      0.9984977466199298
+    ],
+    "fit_time_sec": 1.98
+  },
+  "fit_time_sec": 1.98,
+  "labels": [
+    0,
+    1,
+    2,
+    3,
+    4
+  ],
+  "label_names": [
+    "Backdoor",
+    "CommInj",
+    "DoS",
+    "Reconn",
+    "normal"
+  ],
+  "model_path": "/Users/trungnguye2n.dev/foami-plus/IIOT-2021/training/models/standard_cat.pkl"
+}

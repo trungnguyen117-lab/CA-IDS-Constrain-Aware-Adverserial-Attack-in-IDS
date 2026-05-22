@@ -1,0 +1,41 @@
+
+==============================================================================================================
+  Scenario       Tgt/Strat   Clean F1  CleanRej  ASR per attack
+--------------------------------------------------------------------------------------------------------------
+  S1             cat           96.96%     0.00%  hsja=98.8%  zoo=3.6%  cw=5.6%  deepfool=97.0%  fgsm=41.4%  jsma=0.6%  pgd=41.3%
+  S1             rf            95.27%     0.00%  hsja=99.0%  zoo=0.1%  cw=1.7%  deepfool=67.6%  fgsm=33.0%  jsma=0.0%  pgd=34.3%
+  S1             xgb           96.51%     0.00%  hsja=98.1%  zoo=2.5%  cw=1.8%  deepfool=70.0%  fgsm=42.6%  jsma=0.3%  pgd=41.0%
+  S1             et            96.44%     0.00%  hsja=100.0%  zoo=14.5%  cw=10.7%  deepfool=61.4%  fgsm=34.0%  jsma=0.1%  pgd=32.2%
+  S1             lgbm          96.69%     0.00%  hsja=98.3%  zoo=12.6%  cw=15.8%  deepfool=67.9%  fgsm=27.4%  jsma=0.1%  pgd=23.4%
+  S1             mlp           91.39%     0.00%  cw=9.6%  deepfool=100.0%  fgsm=6.4%  hsja=98.5%  jsma=4.5%  pgd=9.6%  zoo=20.6%
+  S2             cat           96.37%     0.00%  hsja=1.3%  zoo=0.0%  cw=2.0%  deepfool=4.4%  fgsm=0.2%  jsma=0.1%  pgd=0.4%
+  S2             rf            96.05%     0.00%  hsja=0.8%  zoo=0.0%  cw=0.9%  deepfool=1.2%  fgsm=12.8%  jsma=3.0%  pgd=3.5%
+  S2             xgb           95.86%     0.00%  hsja=0.9%  zoo=0.2%  cw=3.4%  deepfool=0.8%  fgsm=0.6%  jsma=0.0%  pgd=0.2%
+  S2             et            96.37%     0.00%  hsja=1.4%  zoo=0.2%  cw=1.9%  deepfool=4.0%  fgsm=0.6%  jsma=0.1%  pgd=3.3%
+  S2             lgbm          96.26%     0.00%  hsja=1.2%  zoo=0.1%  cw=2.3%  deepfool=5.3%  fgsm=0.3%  jsma=0.1%  pgd=0.2%
+  S2             mlp           95.27%     0.00%  cw=5.3%  deepfool=0.4%  fgsm=0.8%  hsja=10.4%  jsma=0.6%  pgd=0.7%  zoo=0.9%
+  S3             cat           96.37%     1.09%  hsja=0.7%(rej30%)  zoo=0.0%(rej1%)  cw=2.1%(rej23%)  deepfool=7.2%(rej95%)  fgsm=0.1%(rej1%)  jsma=0.1%(rej1%)  pgd=0.2%(rej1%)
+  S3             rf            96.05%     1.09%  hsja=0.3%(rej40%)  zoo=0.0%(rej1%)  cw=0.8%(rej23%)  deepfool=3.3%(rej95%)  fgsm=12.7%(rej1%)  jsma=3.0%(rej1%)  pgd=3.4%(rej1%)
+  S3             xgb           95.86%     1.09%  hsja=0.7%(rej30%)  zoo=0.2%(rej1%)  cw=2.1%(rej23%)  deepfool=4.7%(rej95%)  fgsm=0.4%(rej1%)  jsma=0.0%(rej1%)  pgd=0.1%(rej1%)
+  S3             et            96.37%     1.09%  hsja=0.4%(rej71%)  zoo=0.2%(rej5%)  cw=2.2%(rej23%)  deepfool=4.4%(rej95%)  fgsm=0.6%(rej1%)  jsma=0.1%(rej1%)  pgd=3.2%(rej1%)
+  S3             lgbm          96.26%     1.09%  hsja=0.5%(rej32%)  zoo=0.0%(rej2%)  cw=2.4%(rej23%)  deepfool=6.9%(rej95%)  fgsm=0.2%(rej1%)  jsma=0.0%(rej1%)  pgd=0.2%(rej1%)
+  S3             mlp           95.27%     1.09%  cw=6.5%(rej23%)  deepfool=0.7%(rej95%)  fgsm=0.8%(rej1%)  hsja=18.6%(rej46%)  jsma=0.6%(rej1%)  pgd=0.7%(rej1%)  zoo=0.3%(rej11%)
+  S4             cat           96.96%     1.09%  hsja=98.4%(rej30%)  zoo=3.3%(rej1%)  cw=5.2%(rej23%)  deepfool=95.3%(rej95%)  fgsm=41.6%(rej1%)  jsma=0.5%(rej1%)  pgd=41.5%(rej1%)
+  S4             rf            95.27%     1.09%  hsja=98.7%(rej40%)  zoo=0.1%(rej1%)  cw=1.7%(rej23%)  deepfool=84.7%(rej95%)  fgsm=33.1%(rej1%)  jsma=0.0%(rej1%)  pgd=34.4%(rej1%)
+  S4             xgb           96.51%     1.09%  hsja=97.4%(rej30%)  zoo=2.4%(rej1%)  cw=1.8%(rej23%)  deepfool=95.0%(rej95%)  fgsm=42.7%(rej1%)  jsma=0.2%(rej1%)  pgd=41.0%(rej1%)
+  S4             et            96.44%     1.09%  hsja=100.0%(rej71%)  zoo=10.9%(rej5%)  cw=13.3%(rej23%)  deepfool=68.8%(rej95%)  fgsm=34.3%(rej1%)  jsma=0.0%(rej1%)  pgd=32.5%(rej1%)
+  S4             lgbm          96.69%     1.09%  hsja=97.8%(rej32%)  zoo=12.1%(rej2%)  cw=18.8%(rej23%)  deepfool=93.1%(rej95%)  fgsm=27.5%(rej1%)  jsma=0.1%(rej1%)  pgd=23.5%(rej1%)
+  S4             mlp           91.39%     1.09%  cw=8.3%(rej23%)  deepfool=100.0%(rej95%)  fgsm=6.4%(rej1%)  hsja=97.9%(rej46%)  jsma=4.6%(rej1%)  pgd=9.6%(rej1%)  zoo=11.9%(rej11%)
+  E1             static        96.96%     0.00%  cw=2.2%  deepfool=68.5%  fgsm=38.9%  hsja=97.8%  jsma=0.2%  pgd=37.0%  zoo=0.4%
+  E1             mi            96.46%     0.00%  cw=1.9%  deepfool=98.9%  fgsm=29.1%  hsja=97.0%  jsma=0.2%  pgd=29.0%  zoo=1.9%
+  E1             mi2           96.96%     0.00%  cw=2.1%  deepfool=68.6%  fgsm=26.0%  hsja=98.3%  jsma=0.2%  pgd=23.8%  zoo=1.0%
+  E2             static        96.40%     0.00%  cw=2.1%  deepfool=0.8%  fgsm=0.2%  hsja=0.5%  jsma=0.0%  pgd=0.2%  zoo=0.0%
+  E2             mi            96.60%     0.00%  cw=2.1%  deepfool=0.7%  fgsm=0.2%  hsja=0.5%  jsma=0.0%  pgd=0.3%  zoo=0.0%
+  E2             mi2           96.50%     0.00%  cw=2.1%  deepfool=0.8%  fgsm=0.2%  hsja=0.5%  jsma=0.1%  pgd=0.2%  zoo=0.0%
+  E3             static        96.40%     1.09%  cw=2.3%(rej23%)  deepfool=5.8%(rej95%)  fgsm=0.1%(rej1%)  hsja=0.0%(rej87%)  jsma=0.0%(rej1%)  pgd=0.2%(rej1%)  zoo=0.0%(rej14%)
+  E3             mi            96.60%     1.09%  cw=2.3%(rej23%)  deepfool=3.6%(rej95%)  fgsm=0.2%(rej1%)  hsja=0.1%(rej87%)  jsma=0.0%(rej1%)  pgd=0.2%(rej1%)  zoo=0.0%(rej14%)
+  E3             mi2           96.50%     1.09%  cw=2.4%(rej23%)  deepfool=5.0%(rej95%)  fgsm=0.1%(rej1%)  hsja=0.0%(rej87%)  jsma=0.0%(rej1%)  pgd=0.1%(rej1%)  zoo=0.0%(rej14%)
+  E4             static        96.96%     1.09%  cw=2.0%(rej23%)  deepfool=94.3%(rej95%)  fgsm=39.2%(rej1%)  hsja=98.5%(rej87%)  jsma=0.2%(rej1%)  pgd=37.2%(rej1%)  zoo=0.1%(rej14%)
+  E4             mi            96.46%     1.09%  cw=1.5%(rej23%)  deepfool=94.9%(rej95%)  fgsm=29.1%(rej1%)  hsja=99.3%(rej87%)  jsma=0.2%(rej1%)  pgd=29.1%(rej1%)  zoo=0.8%(rej14%)
+  E4             mi2           96.96%     1.09%  cw=1.9%(rej23%)  deepfool=94.6%(rej95%)  fgsm=26.1%(rej1%)  hsja=99.2%(rej87%)  jsma=0.2%(rej1%)  pgd=23.9%(rej1%)  zoo=0.2%(rej14%)
+==============================================================================================================

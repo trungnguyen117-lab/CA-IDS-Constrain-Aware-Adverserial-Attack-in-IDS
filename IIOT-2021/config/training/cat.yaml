@@ -1,0 +1,12 @@
+# CatBoost training params — mirror CatBoostModel.DEFAULT_PARAMS.
+iterations: 50
+depth: 5
+learning_rate: 0.2
+loss_function: MultiClass
+eval_metric: MultiClass
+auto_class_weights: Balanced
+early_stopping_rounds: 50
+random_seed: 42
+task_type: CPU
+thread_count: -1
+verbose: false

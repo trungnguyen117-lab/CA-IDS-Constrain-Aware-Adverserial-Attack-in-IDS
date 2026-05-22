@@ -1,0 +1,48 @@
+# No-leak override — drop Dport + Proto on top of the canonical leak list,
+# redirect every artifact to *_noleak/ folders so canonical outputs stay intact.
+#     IIOT_CONFIG=config.noleak.yaml python run_data.py
+extends: config.yaml
+
+drop_cols: [
+    StartTime,
+    LastTime,
+    SrcAddr,
+    DstAddr,
+    IdleTime,
+    sTtl,
+    dTtl,
+    sIpId,
+    dIpId,
+    Sport,
+    # Dport,
+    # Proto,
+    # TcpRtt,
+    # DAppBytes,
+    # SynAck,
+  ]
+
+paths:
+  raw: datasets/wustl_iiot_2021.csv
+
+  clean: datasets_noleak/wustl_clean.csv
+  clean_noleak: datasets_noleak/wustl_clean_noleak.csv
+
+  train_real: datasets_noleak/train_real.csv
+  test_real: datasets_noleak/test_real.csv
+  train_for_shap: datasets_noleak/train_for_shap.csv
+  train_shap_real: datasets_noleak/train_shap_real.csv
+  test_final: datasets_noleak/test_final.csv
+
+  train: datasets_noleak/train_balance_t5000_e50.csv
+  test: datasets_noleak/test_final.csv
+
+  train_covas_real: datasets_noleak/train_covas_real.csv
+  test_covas_real: datasets_noleak/test_covas_real.csv
+
+  topup_dir: datasets_noleak
+
+  models: baseline_noleak/models
+  adv_eval: adv_samples_noleak/adv_eval
+  adv_training: adv_samples_noleak/adv_training
+  report: report_noleak
+  models_at: defense_noleak/at

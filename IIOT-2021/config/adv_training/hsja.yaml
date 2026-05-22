@@ -1,0 +1,10 @@
+# HSJA cho AT pool — match (hoặc mạnh hơn) eval config attacks/hsja.yaml.
+# Principle: train MLP trên adversary mạnh hơn cái sẽ gặp ở eval/deployment.
+batch_size: 32
+targeted: false
+norm: 2
+max_iter: 5
+max_eval: 5
+init_eval: 5
+init_size: 5
+verbose: true

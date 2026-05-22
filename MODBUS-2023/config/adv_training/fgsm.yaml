@@ -1,7 +1,7 @@
 # FGSM (Fast Gradient Sign Method) parameters
-# White-box gradient attack — requires differentiable model (ftt only)
+# White-box gradient attack — requires differentiable model (dnn only)
 
-eps: 0.1
+eps: 1
 eps_step: 0.01
 batch_size: 64
 targeted: false

@@ -1,0 +1,198 @@
+# IIOT-2021 Project Configuration — single source of truth (Pydantic-validated).
+# All paths are relative to IIOT-2021/ root directory.
+
+name: IIOT-2021
+label_col: Label
+n_features: 33 # post SHAP top-K∪ + CovaS
+n_classes: 5
+label_names: [Backdoor, CommInj, DoS, Reconn, normal]
+
+cont_features:
+  - Mean
+  - SrcLoad
+  - DstLoad
+  - Load
+  - SrcRate
+  - DstRate
+  - Rate
+  - SrcLoss
+  - DstLoss
+  - Loss
+  - pLoss
+  - SrcJitter
+  - DstJitter
+  - SIntPkt
+  - DIntPkt
+  - TcpRtt
+  - IdleTime
+  - sTtl
+  - dTtl
+  - SynAck
+  - RunTime
+  - SrcJitAct
+  - DstJitAct
+
+models:
+  # Filename convention is fixed: ``{target}[_{defense}].{ext}``
+  tree_targets: [cat, rf, xgb, et, lgbm]
+  dl_targets: [mlp]
+  surrogate_targets: [surrogate_resdnn]
+  ext:
+    {
+      cat: .pkl,
+      rf: .pkl,
+      xgb: .pkl,
+      et: .pkl,
+      lgbm: .pkl,
+      mlp: .pth,
+      surrogate_resdnn: .pth,
+    }
+  dl_factory:
+    mlp: model_local.MLPModel
+    surrogate_resdnn: model_local.SurrogateResDNN
+
+attacks:
+  wb: [fgsm, pgd, deepfool, cw, jsma]
+  bb: [zoo, hsja]
+  compat:
+    cat: [zoo, hsja]
+    rf: [zoo, hsja]
+    xgb: [zoo, hsja]
+    et: [zoo, hsja]
+    lgbm: [zoo, hsja]
+    mlp: [fgsm, pgd, deepfool, cw, jsma, zoo, hsja]
+    surrogate_resdnn: [fgsm, pgd, deepfool, cw, jsma, zoo, hsja]
+  transfer_sources:
+    cat: [mlp]
+    rf: [mlp]
+    xgb: [mlp]
+    et: [mlp]
+    lgbm: [mlp]
+    # mlp: [mlp]
+paths:
+  raw: datasets/wustl_iiot_2021.csv
+  clean: datasets/wustl_iiot_2021_clean.csv
+  clean_noleak: datasets/wustl_iiot_2021_clean_noleak.csv
+  # Canonical training/test for end-to-end pipeline (was train_standard/test_final)
+  train: datasets/train_topup_t1000_e50.csv
+  test: datasets/test_final.csv
+  test_final: datasets/test_final.csv
+
+  train_real: datasets/train_real.csv # mẫu thật, chưa cap
+  test_real: datasets/test_real.csv
+  train_for_shap: datasets/train_for_shap.csv # real capped cho SHAP
+  train_shap_real: datasets/train_shap_real.csv
+  train_covas_real: datasets/train_covas_real.csv # train_for_shap drop dead
+  test_covas_real: datasets/test_covas_real.csv # test drop dead
+
+  models: baseline/models
+  report: report
+
+label:
+  mode: traffic # binary | traffic
+  binary_col: Target
+  multi_col: Traffic
+
+drop_cols: [
+    StartTime,
+    LastTime,
+    SrcAddr,
+    DstAddr,
+    IdleTime,
+    sTtl,
+    dTtl,
+    sIpId,
+    dIpId,
+    Sport,
+    # Dport,
+    # Proto,
+    # TcpRtt,
+    # SynAck,
+    # DAppBytes,
+    # DstBytes,
+    # sDSb,
+    # sTos,
+  ]
+
+subsample: 500000 # stratified subsample trước khi split; null = full
+
+split:
+  test_size: 0.2
+  random_state: 42
+
+balance:
+  # Cap per class cho train/test sau khi drop leak.
+  # Với Backdoor (212) / CommInj (259): dùng full vì không đủ cap.
+  train_cap: 600
+  test_cap: 600
+  random_state: 42
+
+# Pipeline 8000 — SHAP trước, TVAE augment sau.
+augment:
+  shap_cap: 5000 # cap abundant class cho SHAP input (balanced)
+  train_target: 8000 # số mẫu train per class sau TVAE augment
+  test_cap: 2000 # cap test per class (lấy từ real only)
+  # Rare class (dưới ngưỡng này) dùng test_ratio 0.5 thay vì 0.2 để test
+  # có nhiều mẫu thật hơn, train-portion ít đi không sao vì sẽ TVAE-augment.
+  rare_threshold: 500 # class có tổng mẫu ≤ 500 → rare
+  rare_test_ratio: 0.5
+  default_test_ratio: 0.2
+  tvae:
+    epochs: 200
+    batch_size: 512
+    embedding_dim: 64
+    compress_dims: [128, 64]
+    decompress_dims: [64, 128]
+    l2scale: 1.0e-4
+    loss_factor: 2.0
+    cuda: false
+  random_state: 42
+
+# CovaS pair analysis — giống quy trình trong
+# MODBUS-2023/script/2_covaS_shap_2_8.ipynb.
+# Cặp class bị confuse nặng nhất từ RF no-leak: (DoS, Reconn) — 208 DoS
+# predicted as Reconn, tương tự cặp (Brute Force, Recon) trong MODBUS-2023.
+covas:
+  pair: [DoS, Reconn]
+  bins: 100
+  thresholds:
+    overlap: 0.90 # overlap ≥ 0.90 → feature không phân biệt được
+    ks: 0.05 # KS ≤ 0.05     → phân phối gần như giống hệt
+    dist: 0.01 # |Δmean|/(σa+σb) ≤ 0.01 → mean gần như trùng
+    # Feature "dead" khi đồng thời thoả 3 điều kiện trên.
+
+# SHAP feature selection (RF ∪ XGB top-K), port từ
+# MODBUS-2023/script/2_covaS_shap_2_8.ipynb.
+#   input: train_balanced sau khi drop covas dead features
+#   top_k: số feature lấy từ RF và XGB (union). Với 27 feature đầu vào,
+#          top_k=20 ≈ 75% retention, khớp tỉ lệ notebook (50/67 ≈ 75%).
+shap:
+  top_k: 30
+  val_size: 0.1
+  random_state: 42
+  drop_covas_dead: true
+  # RF + XGB cfg used DURING SHAP scoring (separate from final training).
+  # Mirror sibling rf_quick.yaml / xgb.yaml so SHAP rankings reproduce the
+  # canonical 23-feature selection.
+  rf_cfg:
+    n_estimators: 200
+    max_depth: 15
+    max_leaf_nodes: null
+    criterion: entropy
+    class_weight: balanced
+    n_jobs: -1
+    bootstrap: true
+    random_state: 0
+  xgb_cfg:
+    max_depth: 15
+    n_estimators: 3000
+    learning_rate: 0.2
+    objective: "multi:softprob"
+    eval_metric: mlogloss
+    booster: gbtree
+    tree_method: hist
+    n_jobs: -1
+    random_state: 42
+    early_stopping_rounds: 50
+
+# (Legacy ``models:`` block removed — moved to top with full schema)

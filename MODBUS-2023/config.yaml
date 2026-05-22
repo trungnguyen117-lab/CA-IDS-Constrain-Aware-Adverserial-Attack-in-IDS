@@ -1,35 +1,158 @@
-# MODBUS-2023 Project Configuration
-# All paths are relative to MODBUS-2023/ root directory
+# MODBUS-2023 dataset config — single source of truth (Pydantic-validated).
+# All paths relative to MODBUS-2023/ root directory.
+
+name: MODBUS-2023
+label_col: Label
+# n_features không khai báo — phái sinh từ SHAP top_k union (≈58 cho top_k=50)
+n_classes: 9
+# CICModbus2023 9-class. Names from script/0_extract_modbus_features.ipynb
+# label encoding (BENIGN=0 first, then others alphabetical except for
+# BASELINE_REPLAY=1, BRUTE_FORCE=2, ..., RECON=8).
+label_names:
+  - BENIGN
+  - BASELINE_REPLAY
+  - BRUTE_FORCE
+  - DELAY_RESPONSE
+  - FRAME_STACKING
+  - LENGTH_MANIPULATION
+  - PAYLOAD_INJECTION
+  - QUERY_FLOODING
+  - RECON
 
 paths:
-  # Datasets
-  train: datasets/train_shap_58_600.csv
+  # Canonical train/test from notebook pipeline (NOT overwritten by run_data.py)
+  train: datasets/modbus_train_merged_1400_TVAE.csv
   test: datasets/test_shap_58_600.csv
-  train_tvae: datasets/modbus_train_merged_1400_TVAE.csv
 
-  # Model directories
-  models: training/models
-  models_at: defense/models
+  # Raw input (full pipeline starts here — notebook 0 input)
+  raw: /Users/trungnguye2n.dev/Downloads/Labeled_CICMODBUS2023.csv
 
-  # Adversarial samples
+  # Stage outputs (suffix _repro to NOT overwrite canonical artifacts)
+  cleaned_repro: datasets/Labeled_CICMODBUS2023_cleaned_repro.csv
+  train_split_repro: datasets/train_70_600_repro.csv
+
+  # Reproduction pipeline inputs (notebook 1 outputs — already in datasets/)
+  # When running --from clean these get overwritten via train_for_shap_repro /
+  # test_for_shap_repro keys below.
+  train_for_shap: datasets/train_70_balanced_600.csv # 9206 rows, 81 cols
+  test_for_shap: datasets/test_30_600.csv # 3946 rows, 81 cols
+  train_for_shap_repro: datasets/train_70_balanced_600_repro.csv
+  test_for_shap_repro: datasets/test_30_600_repro.csv
+
+  # Reproduction outputs (suffix _repro to NOT overwrite canonical artifacts)
+  train_shap_real: datasets/train_shap_58_600_repro.csv
+  test_shap_real: datasets/test_shap_58_600_repro.csv
+  topup_dir: datasets # → datasets/modbus_train_merged_t{T}_e{E}_repro.csv
+
+  models: baseline/models
   adv_eval: adv_samples/adv_eval
   adv_training: adv_samples/adv_training
-
-  # Config
-  attack_config: config/attacks
-  training_config: config/training
-
-  # Reports
   report: report
 
-# Model file naming convention:
-#   baseline:  framework_{model}_TabDiff.{ext}
-#   AT:        framework_{model}_TabDiff_at.{ext}
-#   ext: .pkl (tree), .pth (DL/FTT)
 models:
-  tree: [xgb, cat, rf, et, lgbm]
-  dl: [ftt]
+  # Filename convention is fixed: ``{target}[_{defense}].{ext}``
+  tree_targets: [xgb, cat, rf, et, lgbm]
+  dl_targets: [dnn]
+  surrogate_targets: [surrogate_resdnn]
+  ext: { xgb: .pkl, cat: .pkl, rf: .pkl, et: .pkl, lgbm: .pkl, dnn: .pth, surrogate_resdnn: .pth }
+  dl_factory:
+    dnn: model_local.DNNModel
+    surrogate_resdnn: model_local.SurrogateResDNN
 
-# Feature set: 58 SHAP-selected features
-n_features: 58
-n_classes: 9
+attacks:
+  wb: [fgsm, pgd, deepfool, cw, jsma]
+  bb: [zoo, hsja]
+  compat:
+    xgb: [zoo, hsja]
+    cat: [zoo, hsja]
+    rf: [zoo, hsja]
+    et: [zoo, hsja]
+    lgbm: [zoo, hsja]
+    dnn: [fgsm, pgd, deepfool, cw, jsma, zoo, hsja]
+    surrogate_resdnn: [fgsm, pgd, deepfool, cw, jsma, zoo, hsja]
+  transfer_sources:
+    xgb: [dnn]
+    cat: [dnn]
+    rf: [dnn]
+    et: [dnn]
+    lgbm: [dnn]
+
+# at_weights: per-target file riêng tại config/at_weights/<target>.yaml
+# (loader src/core/train.py:load_attack_weights ưu tiên file rời, không cần inline ở đây)
+
+at_clean_ratio:
+  dnn: 0.5
+  xgb: 0.1
+  cat: 0.1
+  rf: 0.1
+  et: 0.1
+  lgbm: 0.1
+
+# ── Preprocessing pipeline (covas → shap → apply → topup) ───────────────────
+# Stages preprocess/drop_leak/split/cap belong to the legacy notebooks
+# (script/0_extract_modbus_features.ipynb, script/1_baseline.ipynb).
+# `run_data.py` only re-runs the SHAP/CovaS/TVAE portion that follows.
+
+split:
+  random_state: 42
+
+augment:
+  mode: balance_to # MODBUS uses balance_to (notebook), not topup_rare
+  train_target: 1400 # per-class target after TVAE balance (matches canonical)
+  # MODBUS-specific recipe (notebook 0+1). Nằm dưới augment để tránh đụng
+  # src/core/config.py (shared module — extra="ignore" sẽ drop key top-level).
+  modbus:
+    drop_manual: [Src_Port, Dst_Port]
+    abundant_labels: [0, 2]
+    test_n_per_abundant: 600
+    balance_n_per_abundant: 1400
+    rare_test_ratio: 0.3
+  tvae:
+    epochs: 200
+    batch_size: 512
+    embedding_dim: 64
+    compress_dims: [128, 64]
+    decompress_dims: [64, 128]
+    l2scale: 1.0e-4
+    loss_factor: 2.0
+    cuda: false
+  random_state: 42
+
+# CovaS pair from script/2_covaS_shap_2_8.ipynb cell 3:
+#   CLASS_A=2 (BRUTE_FORCE), CLASS_B=8 (RECON), bins=100, robust=True.
+# Thresholds from cell 13 (OVERLAP_TH/KS_TH/DIST_TH).
+covas:
+  pair: [BRUTE_FORCE, RECON]
+  bins: 100
+  robust: true
+  thresholds:
+    overlap: 0.90
+    ks: 0.05
+    dist: 0.01
+
+# SHAP feature selection (RF ∪ XGB top-K). Mirrors notebook 2 cells 21-23.
+# rf_cfg matches notebook cell 21; xgb_cfg matches cell 21 (max_depth=8, lr=0.1).
+shap:
+  top_k: 50 # union of RF top-50 + XGB top-50 → 58 features
+  val_size: 0.1
+  random_state: 42
+  drop_covas_dead: true
+  rf_cfg:
+    n_estimators: 100
+    max_leaf_nodes: 15000
+    criterion: entropy
+    class_weight: balanced
+    bootstrap: true
+    n_jobs: -1
+    random_state: 0
+  xgb_cfg:
+    max_depth: 8
+    n_estimators: 3000
+    learning_rate: 0.1
+    objective: "multi:softprob"
+    eval_metric: mlogloss
+    booster: gbtree
+    tree_method: hist
+    n_jobs: -1
+    random_state: 42
+    early_stopping_rounds: 50

@@ -1,7 +1,7 @@
 # PGD (Projected Gradient Descent) parameters
-# White-box iterative attack — requires differentiable model (ftt only)
+# White-box iterative attack — requires differentiable model (dnn only)
 
-eps: 0.2
+eps: 1
 eps_step: 0.01
 max_iter: 200
 batch_size: 64

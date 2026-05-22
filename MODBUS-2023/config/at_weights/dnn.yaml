@@ -1,0 +1,8 @@
+attack_weights:
+  fgsm: 50
+  pgd: 50
+  deepfool: 50
+  cw: 50
+  jsma: 50.0
+  zoo: 50.0
+  hsja: 50.0

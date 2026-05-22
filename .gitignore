@@ -7,7 +7,7 @@ adversarial-robustness-toolbox/
 *.pt
 *.pth.tar
 *.pth.tar.gz
-
+.vscode
 *.pth.tar.bz2
 *.pth.tar.xz
 *.pth.tar.lzma
@@ -23,10 +23,11 @@ adversarial-robustness-toolbox/
 .pytest_cache/
 catboost_info/
 logs/
+docs
 *.md
 __pycache__/
 *.pyc
-apelid/
+
 IEC-104/datasets/CTGAN/                                                                                                                                         
 IEC-104/datasets/CopulaGAN/                                                                                                                                     
 IEC-104/datasets/DNN/                                                                                                                                           
@@ -40,3 +41,6 @@ MODBUS-2023/datasets/GaussianCopula/
 MODBUS-2023/datasets/TVAE/                                                                                                                                      
 MODBUS-2023/datasets/backup/
 *.csv
+*.png
+*.xlsx
+notebooks/

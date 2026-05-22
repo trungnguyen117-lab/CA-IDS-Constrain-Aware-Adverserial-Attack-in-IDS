@@ -1,9 +1,0 @@
-# MIM (Momentum Iterative Method) parameters
-# White-box iterative attack with momentum — requires differentiable model (lstm, resdnn only)
-
-eps: 0.2
-eps_step: 0.01
-max_iter: 100
-decay_factor: 1.0
-batch_size: 64
-targeted: false

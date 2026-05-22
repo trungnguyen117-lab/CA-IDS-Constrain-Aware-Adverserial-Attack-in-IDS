@@ -1,8 +1,0 @@
-# metric_direction: lower_is_better (worst-case individual ASR)
-iteration	commit	worst_asr	avg_asr	cat_acc	rf_acc	lstm_acc	resdnn_acc	guard	status	description
-0	-	25.87	7.66	84.57	85.36	72.24	68.69	pass	baseline	original AT ratios from constants.py
-1	-	18.70	8.54	84.27	84.37	72.53	70.32	pass	keep	Add hsja+zoo to AT_WEIGHTS_LSTM(hsja=5.0 zoo=3.0), lstm ratio 0.5->0.2: LSTM hsja 25.87->17.06%
-2	-	19.09	9.02	82.54	83.19	72.53	70.32	pass	discard	lstm_sc transfer + deepfool upweight: ASR regressed, lstm transfer diluting signal
-3	-	18.82	9.13	83.23	83.58	72.53	70.32	pass	discard	resdnn_deepfool=10.0 heavy: no improvement, ML deepfool transfer resistant to weight changes
-4	-	20.52	9.42	84.27	84.37	72.58	70.36	pass	discard	rebalanced LSTM (hsja=4 pgd=4 mim=4 ratio=0.25): hsja regressed 17.06->20.52
-5	-	18.70	8.64	84.27	84.37	73.18	69.43	pass	discard	resdnn ratio 1.0->0.3 + deepfool/mim upweight: resdnn better but ML transfer unchanged

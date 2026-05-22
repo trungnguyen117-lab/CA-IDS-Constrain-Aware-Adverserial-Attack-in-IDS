@@ -1,9 +1,0 @@
-# MIM AT v2 — stronger than eval (eps 0.2→0.3, max_iter 100→150, eps_step 0.01→0.015)
-# White-box iterative attack with momentum — requires differentiable model (lstm, resdnn only)
-
-eps: 0.3
-eps_step: 0.015
-max_iter: 150
-decay_factor: 1.0
-batch_size: 64
-targeted: false

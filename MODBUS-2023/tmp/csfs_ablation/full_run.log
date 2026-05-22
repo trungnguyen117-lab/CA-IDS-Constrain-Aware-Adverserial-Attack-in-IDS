@@ -1,0 +1,38 @@
+CovaS dead features (14): ['Protocol', 'Fwd_Packet_Length_Min', 'Fwd_Packet_Length_Mean', 'Bwd_Packet_Length_Min', 'Packet_Length_Min', 'Fwd_Segment_Size_Avg', 'Fwd_Bytes/Bulk_Avg', 'Fwd_Packet/Bulk_Avg', 'Fwd_Bulk_Rate_Avg', 'Bwd_Bytes/Bulk_Avg', 'Bwd_Packet/Bulk_Avg', 'Bwd_Bulk_Rate_Avg', 'Active_Std', 'Idle_Std']
+
+=== A_RAW | n_features=80 | train=9206 test=3946 ===
+  xgb   fit=   2.02s acc=0.9430  f1m=0.9477  tpr=0.9487  fpr=0.0072
+  rf    fit=   3.22s acc=0.9562  f1m=0.9603  tpr=0.9618  fpr=0.0055
+  cat   fit=  16.39s acc=0.9323  f1m=0.9380  tpr=0.9395  fpr=0.0085
+Training until validation scores don't improve for 50 rounds
+Early stopping, best iteration is:
+[132]	valid_0's multi_logloss: 0.159108	valid_0's multi_error: 0.0510315
+  lgbm  fit=   1.60s acc=0.9448  f1m=0.9496  tpr=0.9513  fpr=0.0070
+  et    fit=   0.60s acc=0.9516  f1m=0.9564  tpr=0.9581  fpr=0.0061
+  dnn: FAILED ModuleNotFoundError("No module named 'model_local'")
+
+=== B_COVAS | n_features=66 | train=9206 test=3946 ===
+  xgb   fit=   3.47s acc=0.9448  f1m=0.9492  tpr=0.9504  fpr=0.0070
+  rf    fit=   3.38s acc=0.9574  f1m=0.9614  tpr=0.9628  fpr=0.0054
+  cat   fit=  13.58s acc=0.9346  f1m=0.9402  tpr=0.9419  fpr=0.0082
+Training until validation scores don't improve for 50 rounds
+Early stopping, best iteration is:
+[137]	valid_0's multi_logloss: 0.165716	valid_0's multi_error: 0.053203
+  lgbm  fit=   1.55s acc=0.9448  f1m=0.9497  tpr=0.9512  fpr=0.0070
+  et    fit=   0.60s acc=0.9518  f1m=0.9568  tpr=0.9585  fpr=0.0061
+  dnn: FAILED ModuleNotFoundError("No module named 'model_local'")
+
+=== C_SHAP | n_features=59 | train=9206 test=3946 ===
+  xgb   fit=   2.29s acc=0.9453  f1m=0.9497  tpr=0.9504  fpr=0.0069
+  rf    fit=   3.26s acc=0.9577  f1m=0.9617  tpr=0.9628  fpr=0.0054
+  cat   fit=  15.42s acc=0.9316  f1m=0.9370  tpr=0.9382  fpr=0.0086
+Training until validation scores don't improve for 50 rounds
+Early stopping, best iteration is:
+[128]	valid_0's multi_logloss: 0.15264	valid_0's multi_error: 0.0521173
+  lgbm  fit=   1.46s acc=0.9432  f1m=0.9477  tpr=0.9485  fpr=0.0072
+  et    fit=   0.55s acc=0.9513  f1m=0.9562  tpr=0.9580  fpr=0.0062
+  dnn: FAILED ModuleNotFoundError("No module named 'model_local'")
+
+=== D_SHAP_TVAE | n_features=59 | train=12600 test=3946 ===
+  xgb   fit=   1.97s acc=0.9442  f1m=0.9486  tpr=0.9493  fpr=0.0070
+  rf    fit=   5.42s acc=0.9607  f1m=0.9642  tpr=0.9655  fpr=0.0050

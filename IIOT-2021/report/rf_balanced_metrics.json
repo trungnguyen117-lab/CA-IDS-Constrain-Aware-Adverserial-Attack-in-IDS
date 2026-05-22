@@ -1,0 +1,78 @@
+{
+  "cfg": {
+    "n_estimators": 200,
+    "max_leaf_nodes": null,
+    "n_jobs": -1,
+    "bootstrap": true,
+    "criterion": "entropy",
+    "class_weight": "balanced",
+    "random_state": 0
+  },
+  "variant": "balanced",
+  "metrics": {
+    "acc": 97.88806758183738,
+    "macro_f1": 94.42748431307638,
+    "macro_tpr": 95.39853479853481,
+    "macro_fpr": 0.5535116368856822,
+    "confusion_matrix": [
+      [
+        37,
+        5,
+        0,
+        0,
+        0
+      ],
+      [
+        3,
+        49,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        578,
+        21,
+        1
+      ],
+      [
+        0,
+        2,
+        0,
+        598,
+        0
+      ],
+      [
+        3,
+        1,
+        0,
+        4,
+        592
+      ]
+    ],
+    "per_class_f1": [
+      0.8705882352941177,
+      0.8990825688073395,
+      0.9813242784380306,
+      0.9779231398201145,
+      0.9924559932942163
+    ]
+  },
+  "labels": [
+    0,
+    1,
+    2,
+    3,
+    4
+  ],
+  "label_names": [
+    "Backdoor",
+    "CommInj",
+    "DoS",
+    "Reconn",
+    "normal"
+  ],
+  "n_features_used": 30,
+  "dropped_dead_features": []
+}

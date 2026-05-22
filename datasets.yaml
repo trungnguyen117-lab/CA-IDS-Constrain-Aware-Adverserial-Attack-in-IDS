@@ -1,0 +1,6 @@
+datasets:
+  iiot: IIOT-2021/config.yaml
+  iiot_v2: IIOT-2021/config_v2.yaml
+  modbus: MODBUS-2023/config.yaml
+  modbus_v2: MODBUS-2023/config_v2.yaml
+  modbus_v3: MODBUS-2023/config_v3.yaml

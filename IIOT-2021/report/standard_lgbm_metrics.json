@@ -1,0 +1,71 @@
+{
+  "model": "lgbm",
+  "variant": "standard",
+  "metrics": {
+    "acc": 98.6743711760707,
+    "macro_f1": 96.69419967116187,
+    "macro_tpr": 96.49595065312046,
+    "macro_fpr": 0.35494458199934653,
+    "confusion_matrix": [
+      [
+        98,
+        3,
+        0,
+        2,
+        3
+      ],
+      [
+        7,
+        121,
+        0,
+        0,
+        2
+      ],
+      [
+        0,
+        0,
+        1943,
+        56,
+        1
+      ],
+      [
+        0,
+        0,
+        0,
+        1648,
+        0
+      ],
+      [
+        2,
+        1,
+        1,
+        0,
+        1996
+      ]
+    ],
+    "per_class_f1": [
+      0.92018779342723,
+      0.9490196078431372,
+      0.9852941176470589,
+      0.9827072152653548,
+      0.9975012493753124
+    ],
+    "fit_time_sec": 1.12
+  },
+  "fit_time_sec": 1.12,
+  "labels": [
+    0,
+    1,
+    2,
+    3,
+    4
+  ],
+  "label_names": [
+    "Backdoor",
+    "CommInj",
+    "DoS",
+    "Reconn",
+    "normal"
+  ],
+  "model_path": "/Users/trungnguye2n.dev/foami-plus/IIOT-2021/training/models/standard_lgbm.pkl"
+}

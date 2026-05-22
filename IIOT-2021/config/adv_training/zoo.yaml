@@ -1,0 +1,16 @@
+# ZOO — zeroth-order BB attack (raw-space, learning_rate phải đủ lớn).
+# Preset fast: max_iter=10, bs_steps=2, nb_parallel=5. Nhanh ~3×.
+# Cũ: max_iter=30, binary_search_steps=3, nb_parallel=10.
+confidence: 1.0
+targeted: false
+learning_rate: 1.0
+max_iter: 30
+binary_search_steps: 3
+initial_const: 0.01
+abort_early: true
+use_resize: false
+use_importance: false
+nb_parallel: 5
+batch_size: 1
+variable_h: 0.1
+verbose: true

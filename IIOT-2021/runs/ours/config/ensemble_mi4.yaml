@@ -1,0 +1,11 @@
+weights:
+  # cat: 0.0105
+  # rf: 0.0892
+  # xgb: 0.2478
+  # et: 0.1763
+  # lgbm: 0.284
+  # mlp: 0.1922
+params:
+  alpha: 0.5
+  beta: 1
+  tau: 0.3

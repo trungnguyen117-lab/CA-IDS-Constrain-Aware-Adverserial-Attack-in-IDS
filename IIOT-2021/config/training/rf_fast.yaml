@@ -1,0 +1,13 @@
+# RF fast variant — cho BB attack gen (HSJA/ZOO) chạy nhanh.
+# Predict ~6-8× nhanh hơn canonical (850 trees), F1 giảm thường <1%.
+# Dùng: python cli/pipeline/train_all.py --models rf --config-variant fast
+n_estimators: 100
+max_depth: 12
+min_samples_leaf: 10
+max_leaf_nodes: null
+max_samples: 0.4
+criterion: gini
+class_weight: balanced
+n_jobs: -1
+bootstrap: true
+random_state: 0

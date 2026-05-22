@@ -1,0 +1,29 @@
+{
+  "pair": [
+    "BRUTE_FORCE",
+    "RECON"
+  ],
+  "thresholds": {
+    "overlap": 0.9,
+    "ks": 0.05,
+    "dist": 0.01
+  },
+  "dead_features": [
+    "Protocol",
+    "Fwd_Packet_Length_Min",
+    "Fwd_Packet_Length_Mean",
+    "Bwd_Packet_Length_Min",
+    "Packet_Length_Min",
+    "Fwd_Segment_Size_Avg",
+    "Fwd_Bytes/Bulk_Avg",
+    "Fwd_Packet/Bulk_Avg",
+    "Fwd_Bulk_Rate_Avg",
+    "Bwd_Bytes/Bulk_Avg",
+    "Bwd_Packet/Bulk_Avg",
+    "Bwd_Bulk_Rate_Avg",
+    "Active_Std",
+    "Idle_Std"
+  ],
+  "n_features_total": 80,
+  "n_features_dead": 14
+}

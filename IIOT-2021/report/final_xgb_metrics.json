@@ -1,0 +1,70 @@
+{
+  "model": "xgb",
+  "metrics": {
+    "acc": 98.55540448674371,
+    "macro_f1": 95.66690942665304,
+    "macro_tpr": 94.8133236574746,
+    "macro_fpr": 0.3897443036840774,
+    "confusion_matrix": [
+      [
+        93,
+        3,
+        1,
+        1,
+        8
+      ],
+      [
+        9,
+        116,
+        0,
+        0,
+        5
+      ],
+      [
+        0,
+        0,
+        1944,
+        56,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        1648,
+        0
+      ],
+      [
+        0,
+        2,
+        0,
+        0,
+        1998
+      ]
+    ],
+    "per_class_f1": [
+      0.8942307692307693,
+      0.9243027888446215,
+      0.9855513307984791,
+      0.9830002982403817,
+      0.9962602842183994
+    ],
+    "fit_time_sec": 2.23
+  },
+  "fit_time_sec": 2.23,
+  "labels": [
+    0,
+    1,
+    2,
+    3,
+    4
+  ],
+  "label_names": [
+    "Backdoor",
+    "CommInj",
+    "DoS",
+    "Reconn",
+    "normal"
+  ],
+  "model_path": "/Users/trungnguye2n.dev/foami-plus/IIOT-2021/training/models/final_xgb.pkl"
+}

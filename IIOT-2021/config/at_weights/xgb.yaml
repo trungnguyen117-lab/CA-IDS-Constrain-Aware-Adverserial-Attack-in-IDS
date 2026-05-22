@@ -1,0 +1,8 @@
+attack_weights:
+  pgd: 8.0 # giảm từ 14 — đã bão hòa, dominate gây regress
+  fgsm: 8.0 # tăng từ 2 — đang 25 ASR, weakest
+  deepfool: 10.0 # giảm — đã 0.78
+  cw: 8.0 # tăng từ 2 — chống regress
+  jsma: 4.0 # tăng từ 2 — chống regress
+  zoo: 2.0
+  hsja: 2.0 # giữ — đang work

@@ -1,5 +1,5 @@
 # DeepFool parameters
-# White-box iterative attack — requires differentiable model (ftt only)
+# White-box iterative attack — requires differentiable model (dnn only)
 
 max_iter: 100
 batch_size: 64

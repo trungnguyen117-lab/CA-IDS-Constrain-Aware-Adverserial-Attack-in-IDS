@@ -1,0 +1,10 @@
+# AT attack weights cho CatBoost — PGD transferred dominant; ZOO/HSJA boost
+# vì là direct BB attack duy nhất hoạt động trên tree (no gradient).
+attack_weights:
+  pgd: 3.0
+  fgsm: 1.0
+  deepfool: 100.0
+  cw: 5.0
+  jsma: 2.0
+  zoo: 8.0
+  hsja: 8.0

@@ -1,0 +1,7 @@
+weights:
+  cat: 0.2
+  rf: 0.2
+  xgb: 0.2
+  et: 0.2
+  lgbm: 0.1
+  mlp: 0.1
